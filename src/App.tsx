@@ -54,7 +54,7 @@ function App() {
         ${animateTitle() ? 'scale-150 opacity-0' : 'scale-100 opacity-100'} 
         transition-all duration-1000 transform shadow-text`}
       >
-        TETRIS
+        DENKO TETRIS
       </h1>
       
       {gameMode() === null ? (
