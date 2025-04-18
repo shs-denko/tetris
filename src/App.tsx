@@ -102,19 +102,36 @@ function App() {
             
             {/* 操作方法 */}
             <div class="mt-2 text-gray-400 text-sm bg-gray-800 bg-opacity-50 px-4 py-3 rounded-md border border-gray-700 shadow-md">
-              <div class="font-bold mb-1 text-gray-300">操作方法</div>
-              <div class="flex flex-col gap-1">
-                <div class="flex items-center gap-2">
-                  <span class="bg-gray-700 px-2 py-1 rounded text-xs">WASD</span>
-                  <span>移動/回転</span>
+              <div class="font-bold mb-2 text-gray-300">操作方法</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div class="font-semibold text-gray-200 mb-1">プレイヤー1 (シングル or 左側 in 対戦)</div>
+                  <ul class="list-disc list-inside space-y-1">
+                    <li>左移動: A</li>
+                    <li>右移動: D</li>
+                    <li>回転: W</li>
+                    <li>ソフトドロップ: S</li>
+                    <li>ハードドロップ: Space</li>
+                    <li>ホールド: C</li>
+                  </ul>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="bg-gray-700 px-2 py-1 rounded text-xs">スペース</span>
-                  <span>ハードドロップ</span>
+                <div>
+                  <div class="font-semibold text-gray-200 mb-1">プレイヤー2 (対戦のみ 右側)</div>
+                  <ul class="list-disc list-inside space-y-1">
+                    <li>左移動: ←</li>
+                    <li>右移動: →</li>
+                    <li>回転: ↑</li>
+                    <li>ソフトドロップ: ↓</li>
+                    <li>ハードドロップ: Enter</li>
+                    <li>ホールド: Shift</li>
+                  </ul>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="bg-gray-700 px-2 py-1 rounded text-xs">C</span>
-                  <span>ホールド</span>
+                <div class="sm:col-span-2">
+                  <div class="font-semibold text-gray-200 mb-1">共通</div>
+                  <ul class="list-disc list-inside space-y-1">
+                    <li>ポーズ / 再開: P</li>
+                    <li>リセット: R</li>
+                  </ul>
                 </div>
               </div>
             </div>
