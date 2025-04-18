@@ -1,4 +1,4 @@
-import { onCleanup, onMount, createSignal, Show } from 'solid-js';
+import { onCleanup, onMount, createSignal } from 'solid-js';
 import Board from './Board.tsx';
 import NextPiece from './NextPiece.tsx';
 import HoldPiece from './HoldPiece.tsx';
