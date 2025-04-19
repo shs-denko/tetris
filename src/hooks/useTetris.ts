@@ -94,16 +94,13 @@ export const useTetris = () => {
           const boardRow = position.row + y;
           const boardCol = position.col + x;
           
-          // ボードの範囲外か、すでにブロックが存在する場合は無効
-          if (
-            boardRow < 0 || 
-            boardRow >= BOARD_HEIGHT ||
-            boardCol < 0 || 
-            boardCol >= BOARD_WIDTH ||
-            board()[boardRow][boardCol] !== null
-          ) {
-            return false;
-          }
+          // 横方向が範囲外なら不可
+          if (boardCol < 0 || boardCol >= BOARD_WIDTH) return false;
+          // 下方向（画面外下部）は不可
+          if (boardRow >= BOARD_HEIGHT) return false;
+          // 上方向（row<0）の場合はボード外として許容
+          // 実際にボード上(row>=0)のセルにブロックがある場合のみ不可
+          if (boardRow >= 0 && board()[boardRow][boardCol] !== null) return false;
         }
       }
     }
