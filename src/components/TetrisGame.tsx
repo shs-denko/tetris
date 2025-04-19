@@ -14,6 +14,11 @@ const TetrisGame = (props: TetrisGameProps) => {
   const player1 = useTetris();
   const player2 = props.mode === 'versus' ? useTetris() : null;
   
+  // DAS/ARR 用ステート
+  const [leftHeld, setLeftHeld] = createSignal(false);
+  const [rightHeld, setRightHeld] = createSignal(false);
+  let leftDas: number, leftArr: number, rightDas: number, rightArr: number;
+
   // ゲームオーバー状態管理
   const [isGameOver1, setIsGameOver1] = createSignal(false);
   const [isGameOver2, setIsGameOver2] = createSignal(false);
@@ -69,11 +74,29 @@ const TetrisGame = (props: TetrisGameProps) => {
   };
 
   onMount(() => {
+    // キー状態管理
     const handleKeyDown = (e: KeyboardEvent) => {
-      // プレイヤー1のキー操作（WASD）
-      if (e.key === 'a' || e.key === 'A') player1.moveLeft();
-      if (e.key === 'd' || e.key === 'D') player1.moveRight();
-      if (e.key === 's' || e.key === 'S') player1.moveDown();
+      // 左移動 DAS/ARR
+      if ((e.key === 'a' || e.key === 'A') && !leftHeld()) {
+        setLeftHeld(true);
+        player1.moveLeft();
+        leftDas = window.setTimeout(() => {
+          leftArr = window.setInterval(() => player1.moveLeft(), 50);
+        }, 300);
+      }
+      // 右移動 DAS/ARR
+      if ((e.key === 'd' || e.key === 'D') && !rightHeld()) {
+        setRightHeld(true);
+        player1.moveRight();
+        rightDas = window.setTimeout(() => {
+          rightArr = window.setInterval(() => player1.moveRight(), 50);
+        }, 300);
+      }
+      // ソフトドロップ開始
+      if (e.key === 's' || e.key === 'S') {
+        player1.setSoftDropping(true);
+      }
+      // 回転・ホールド・ハードドロップ
       if (e.key === 'w' || e.key === 'W') player1.rotate();
       if (e.key === ' ') player1.hardDrop();
       if (e.key === 'c' || e.key === 'C') player1.holdPiece();
@@ -89,7 +112,24 @@ const TetrisGame = (props: TetrisGameProps) => {
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'a' || e.key === 'A') {
+        setLeftHeld(false);
+        clearTimeout(leftDas);
+        clearInterval(leftArr);
+      }
+      if (e.key === 'd' || e.key === 'D') {
+        setRightHeld(false);
+        clearTimeout(rightDas);
+        clearInterval(rightArr);
+      }
+      if (e.key === 's' || e.key === 'S') {
+        player1.setSoftDropping(false);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
 
     // ゲーム状態の定期チェック
     const gameStateInterval = setInterval(() => {
@@ -116,6 +156,7 @@ const TetrisGame = (props: TetrisGameProps) => {
     
     onCleanup(() => {
       window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
       clearInterval(gameStateInterval);
     });
   });

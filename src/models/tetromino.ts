@@ -1,107 +1,123 @@
+export type TetrominoType = 'I' | 'J' | 'L' | 'O' | 'S' | 'T' | 'Z';
+
 export interface Tetromino {
-  shape: number[][];
+  type: TetrominoType;
   color: number;
-  name: string;
+  shape: number[][];
+  rotationIndex: number; // 0=spawn, 1=R, 2=2, 3=L
 }
 
-// テトロミノの定義
-export const TETROMINOES: Tetromino[] = [
-  // I - シアン
-  {
-    name: 'I',
-    shape: [
-      [0, 0, 0, 0],
-      [1, 1, 1, 1],
-      [0, 0, 0, 0],
-      [0, 0, 0, 0]
-    ],
-    color: 0
-  },
-  // J - ブルー
-  {
-    name: 'J',
-    shape: [
-      [1, 0, 0],
-      [1, 1, 1],
-      [0, 0, 0]
-    ],
-    color: 1
-  },
-  // L - オレンジ
-  {
-    name: 'L',
-    shape: [
-      [0, 0, 1],
-      [1, 1, 1],
-      [0, 0, 0]
-    ],
-    color: 2
-  },
-  // O - イエロー
-  {
-    name: 'O',
-    shape: [
-      [1, 1],
-      [1, 1]
-    ],
-    color: 3
-  },
-  // S - グリーン
-  {
-    name: 'S',
-    shape: [
-      [0, 1, 1],
-      [1, 1, 0],
-      [0, 0, 0]
-    ],
-    color: 4
-  },
-  // T - パープル
-  {
-    name: 'T',
-    shape: [
-      [0, 1, 0],
-      [1, 1, 1],
-      [0, 0, 0]
-    ],
-    color: 5
-  },
-  // Z - レッド
-  {
-    name: 'Z',
-    shape: [
-      [1, 1, 0],
-      [0, 1, 1],
-      [0, 0, 0]
-    ],
-    color: 6
-  }
-];
-
-// テトロミノをランダムに生成する
-export const randomTetromino = (): Tetromino => {
-  const randomIndex = Math.floor(Math.random() * TETROMINOES.length);
-  return { ...TETROMINOES[randomIndex] };
+// 各テトロミノ4向きデータ
+const shapes: Record<TetrominoType, number[][][]> = {
+  I: [
+    [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+    [[0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]],
+    [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]],
+    [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]],
+  ],
+  J: [
+    [[1, 0, 0], [1, 1, 1], [0, 0, 0]],
+    [[0, 1, 1], [0, 1, 0], [0, 1, 0]],
+    [[0, 0, 0], [1, 1, 1], [0, 0, 1]],
+    [[0, 1, 0], [0, 1, 0], [1, 1, 0]],
+  ],
+  L: [
+    [[0, 0, 1], [1, 1, 1], [0, 0, 0]],
+    [[0, 1, 0], [0, 1, 0], [0, 1, 1]],
+    [[0, 0, 0], [1, 1, 1], [1, 0, 0]],
+    [[1, 1, 0], [0, 1, 0], [0, 1, 0]],
+  ],
+  O: [
+    [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+    [[0, 1, 1, 0], [0, 1, 1, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+  ],
+  S: [
+    [[0, 1, 1], [1, 1, 0], [0, 0, 0]],
+    [[0, 1, 0], [0, 1, 1], [0, 0, 1]],
+    [[0, 0, 0], [0, 1, 1], [1, 1, 0]],
+    [[1, 0, 0], [1, 1, 0], [0, 1, 0]],
+  ],
+  T: [
+    [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
+    [[0, 1, 0], [0, 1, 1], [0, 1, 0]],
+    [[0, 0, 0], [1, 1, 1], [0, 1, 0]],
+    [[0, 1, 0], [1, 1, 0], [0, 1, 0]],
+  ],
+  Z: [
+    [[1, 1, 0], [0, 1, 1], [0, 0, 0]],
+    [[0, 0, 1], [0, 1, 1], [0, 1, 0]],
+    [[0, 0, 0], [1, 1, 0], [0, 1, 1]],
+    [[0, 1, 0], [1, 1, 0], [1, 0, 0]],
+  ],
 };
 
-// テトロミノを時計回りに回転させる
-export const rotateTetromino = (tetromino: Tetromino): Tetromino => {
-  const { shape } = tetromino;
-  const rows = shape.length;
-  const cols = shape[0].length;
-  
-  // 新しい形状を作成
-  const newShape = Array(cols).fill(0).map(() => Array(rows).fill(0));
-  
-  // 時計回りに90度回転
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      newShape[x][rows - 1 - y] = shape[y][x];
-    }
-  }
-  
-  return {
-    ...tetromino,
-    shape: newShape
-  };
+// SRSキックデータ (from>to)
+const kicksJLSTZ: Record<string, { row: number; col: number }[]> = {
+  '0>1': [{ row: 0, col: 0 }, { row: 0, col: -1 }, { row: 1, col: -1 }, { row: 0, col: 2 }, { row: 1, col: 2 }],
+  '1>0': [{ row: 0, col: 0 }, { row: 0, col: 1 }, { row: -1, col: 1 }, { row: 0, col: -2 }, { row: -1, col: -2 }],
+  '1>2': [{ row: 0, col: 0 }, { row: 0, col: 1 }, { row: -1, col: 1 }, { row: 0, col: -2 }, { row: -1, col: -2 }],
+  '2>1': [{ row: 0, col: 0 }, { row: 0, col: -1 }, { row: 1, col: -1 }, { row: 0, col: 2 }, { row: 1, col: 2 }],
+  '2>3': [{ row: 0, col: 0 }, { row: 0, col: 2 }, { row: 1, col: 2 }, { row: 0, col: -1 }, { row: 1, col: -1 }],
+  '3>2': [{ row: 0, col: 0 }, { row: 0, col: -2 }, { row: -1, col: -2 }, { row: 0, col: 1 }, { row: -1, col: 1 }],
+  '3>0': [{ row: 0, col: 0 }, { row: 0, col: -2 }, { row: -1, col: -2 }, { row: 0, col: 1 }, { row: -1, col: 1 }],
+  '0>3': [{ row: 0, col: 0 }, { row: 0, col: 2 }, { row: 1, col: 2 }, { row: 0, col: -1 }, { row: 1, col: -1 }],
 };
+const kicksI: Record<string, { row: number; col: number }[]> = {
+  '0>1': [{ row: 0, col: 0 }, { row: 0, col: -2 }, { row: 0, col: 1 }, { row: 1, col: -2 }, { row: -2, col: 1 }],
+  '1>0': [{ row: 0, col: 0 }, { row: 0, col: 2 }, { row: 0, col: -1 }, { row: -1, col: 2 }, { row: 2, col: -1 }],
+  '1>2': [{ row: 0, col: 0 }, { row: -1, col: 0 }, { row: 2, col: 0 }, { row: -1, col: 2 }, { row: 2, col: -1 }],
+  '2>1': [{ row: 0, col: 0 }, { row: 1, col: 0 }, { row: -2, col: 0 }, { row: 1, col: -2 }, { row: -2, col: 1 }],
+  '2>3': [{ row: 0, col: 0 }, { row: 0, col: 2 }, { row: 0, col: -1 }, { row: 2, col: 2 }, { row: -1, col: -1 }],
+  '3>2': [{ row: 0, col: 0 }, { row: 0, col: -2 }, { row: 0, col: 1 }, { row: -2, col: -2 }, { row: 1, col: 1 }],
+  '3>0': [{ row: 0, col: 0 }, { row: 1, col: 0 }, { row: -2, col: 0 }, { row: 1, col: 2 }, { row: -2, col: -1 }],
+  '0>3': [{ row: 0, col: 0 }, { row: -1, col: 0 }, { row: 2, col: 0 }, { row: -1, col: 2 }, { row: 2, col: -1 }],
+};
+
+// タイプ→色インデックス（Tailwind用）
+const colorMap: Record<TetrominoType, number> = {
+  I: 0, J: 1, L: 2, O: 3, S: 4, T: 5, Z: 6
+};
+
+// 7種1巡用 bag
+let bag: TetrominoType[] = [];
+
+function shuffleBag() {
+  bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+  for (let i = bag.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+}
+
+// 型からTetrominoオブジェクト生成
+function createByType(type: TetrominoType): Tetromino {
+  return { type, color: colorMap[type], shape: shapes[type][0], rotationIndex: 0 };
+}
+
+// 7‑bagは既存shuffleBag/bagから引く想定
+export function randomTetromino(): Tetromino {
+  if (!bag.length) shuffleBag();
+  return createByType(bag.shift()!);
+}
+
+// SRS回転を試行する関数
+export function rotateTetrominoSRS(
+  piece: Tetromino,
+  dir: 1 | -1
+): { piece: Tetromino; offset: { row: number; col: number } }[] {
+  const from = piece.rotationIndex;
+  const to = (from + (dir > 0 ? 1 : 3)) % 4;
+  const key = `${from}>${to}`;
+  const newShape = shapes[piece.type][to];
+  const kicks = piece.type === 'I'
+    ? kicksI[key]
+    : piece.type === 'O'
+      ? [{ row: 0, col: 0 }]
+      : kicksJLSTZ[key];
+  return kicks.map(k => ({
+    piece: { ...piece, shape: newShape, rotationIndex: to },
+    offset: k
+  }));
+}

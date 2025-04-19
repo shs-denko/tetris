@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import { Tetromino, randomTetromino, rotateTetromino } from '../models/tetromino';
+import { Tetromino, randomTetromino, rotateTetrominoSRS } from '../models/tetromino';
 
 export interface Position {
   row: number;
@@ -11,6 +11,15 @@ export const useTetris = () => {
   const BOARD_HEIGHT = 20;
   const INITIAL_SPEED = 1000; // ミリ秒
   const MAX_NEXT_PIECES = 3;
+
+  // ソフトドロップ判定
+  const [isSoftDropping, setSoftDropping] = createSignal(false);
+  
+  // 拡張ロックダウン用変数
+  const LOCK_DELAY = 500;       // 0.5秒
+  let lockTimeout: number;
+  let lockMovesLeft = 15;
+  let isLockActive = false;
 
   // ボードの状態
   const [board, setBoard] = createSignal<(number | null)[][]>(
@@ -107,15 +116,41 @@ export const useTetris = () => {
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return false;
     
+    // 着地中のロックムーブ上限
+    const below = { row: pos.row + 1, col: pos.col };
+    if (rowOffset === 0 && isLockActive && isValidPosition(below, cp.shape) === false) {
+      // 左右移動 or 回転時：カウント減らし、猶予をリセット
+      lockMovesLeft--;
+      clearTimeout(lockTimeout);
+      if (lockMovesLeft <= 0) {
+        lockPiece();
+        return false;
+      }
+    }
+    
     const newPosition = { row: pos.row + rowOffset, col: pos.col + colOffset };
     
     if (isValidPosition(newPosition, cp.shape)) {
+      // 移動成功 → ロックタイマー解除＆再初期化
+      if (isLockActive) {
+        clearTimeout(lockTimeout);
+        lockTimeout = undefined!;
+      }
+      isLockActive = false;
+      lockMovesLeft = 15;
       setCurrentPosition(newPosition);
       return true;
     }
     
-    // 下に移動できない場合、ピースを固定する
-    if (rowOffset > 0) lockPiece();
+    // 下移動失敗時 → ロックダウン開始
+    if (rowOffset > 0 && !isLockActive) {
+      isLockActive = true;
+      lockMovesLeft = 15;
+      lockTimeout = window.setTimeout(() => {
+        lockPiece();
+        isLockActive = false;
+      }, LOCK_DELAY);
+    }
     
     return false;
   };
@@ -135,35 +170,30 @@ export const useTetris = () => {
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return;
     
-    const rotatedPiece = rotateTetromino(cp);
-    
-    // 通常の回転
-    if (isValidPosition(pos, rotatedPiece.shape)) {
-      setCurrentPiece(rotatedPiece);
-      return;
-    }
-    
-    // 壁蹴り（回転後に壁にぶつかる場合は位置を調整）
-    const kicks = [
-      { row: 0, col: -1 }, // 左へ1
-      { row: 0, col: 1 },  // 右へ1
-      { row: 0, col: -2 }, // 左へ2
-      { row: 0, col: 2 },  // 右へ2
-      { row: -1, col: 0 }, // 上へ1（Tスピン用）
-    ];
-    
-    for (const kick of kicks) {
-      const newPosition = {
-        row: pos.row + kick.row,
-        col: pos.col + kick.col
-      };
-      
-      if (isValidPosition(newPosition, rotatedPiece.shape)) {
-        setCurrentPiece(rotatedPiece);
-        setCurrentPosition(newPosition);
+    // SRS回転候補を取得
+    const attempts = rotateTetrominoSRS(cp, 1);
+    for (const { piece: newPiece, offset } of attempts) {
+      // 回転成功時、着地中ならカウント処理
+      if (isLockActive) {
+        lockMovesLeft--;
+        clearTimeout(lockTimeout);
+        if (lockMovesLeft <= 0) {
+          lockPiece();
+          return;
+        }
+      }
+      const np = { row: pos.row + offset.row, col: pos.col + offset.col };
+      if (isValidPosition(np, newPiece.shape)) {
+        setCurrentPiece(newPiece);
+        setCurrentPosition(np);
+        if (isLockActive) {
+          // 猶予リセット
+          lockTimeout = window.setTimeout(() => { lockPiece(); isLockActive = false; }, LOCK_DELAY);
+        }
         return;
       }
     }
+    // 全部ダメなら回転せず
   };
 
   // ハードドロップ（一番下まで一気に落とす）
@@ -269,7 +299,8 @@ export const useTetris = () => {
   createEffect(() => {
     if (gameOver() || isPaused()) return;
     
-    const speed = INITIAL_SPEED / level();
+    // ソフトドロップ中は×20速
+    const speed = INITIAL_SPEED / level() / (isSoftDropping() ? 20 : 1);
     const intervalId = setInterval(() => {
       moveDown();
     }, speed);
@@ -313,6 +344,7 @@ export const useTetris = () => {
     holdPiece,
     pauseGame: () => setIsPaused(!isPaused()),
     resetGame,
-    isGameOver
+    isGameOver,
+    setSoftDropping
   };
 };
