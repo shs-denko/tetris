@@ -6,6 +6,7 @@ interface BoardProps {
   currentPiece: Tetromino | null;
   currentPosition: Position | null;
   isGameOver?: boolean; // ゲームオーバー状態を追加
+  clearingRows?: number[]; // 行クリア状態を追加
 }
 
 const Board = (props: BoardProps) => {
@@ -38,20 +39,21 @@ const Board = (props: BoardProps) => {
   return (
     <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-3 rounded-lg shadow-lg border border-gray-700 relative">
       <div class="grid grid-cols-10 gap-[1px] bg-gray-800 p-1 rounded">
-        {props.board.map((row, rowIndex) => (
+        {props.board.map((row, rowIndex) =>
           row.map((_, colIndex) => {
             const cellValue = getCell(rowIndex, colIndex);
+            const isClearing = props.clearingRows?.includes(rowIndex);
             return (
               <div 
                 class={`w-6 h-6 sm:w-8 sm:h-8 ${
                   cellValue !== null 
                     ? `${getBgColorClass(cellValue)} shadow-inner`
                     : 'bg-gray-900'
-                } border-[0.5px] border-opacity-30 border-gray-700 rounded-sm transition-colors duration-100`}
+                } border-[0.5px] border-opacity-30 border-gray-700 rounded-sm transition-colors duration-100 ${isClearing ? 'animate-clear-line' : ''}`}
               />
             );
           })
-        ))}
+        )}
       </div>
       
       {/* ゲームオーバー表示のオーバーレイ */}

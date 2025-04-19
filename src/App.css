@@ -16,6 +16,33 @@
   66% { transform: translate(-10px, 5px) rotate(-12deg); }
 }
 
+@keyframes clearLineFlash {
+  0% {
+    opacity: 1;
+    transform: scaleY(1);
+    filter: brightness(2);
+    box-shadow: inset 0 0 0px white;
+  }
+  20% {
+    transform: scaleY(1.2);
+    filter: brightness(4);
+  }
+  40% {
+    transform: scaleY(1);
+    filter: brightness(2);
+  }
+  60% {
+    transform: scaleY(1.1);
+    filter: brightness(3);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(1.3);
+    filter: brightness(1);
+    box-shadow: inset 0 0 20px white;
+  }
+}
+
 .animate-float-slow {
   animation: float-slow 8s ease-in-out infinite;
 }
@@ -26,6 +53,10 @@
 
 .animate-float-fast {
   animation: float-fast 4s ease-in-out infinite;
+}
+
+.animate-clear-line {
+  animation: clearLineFlash 0.5s ease-out forwards;
 }
 
 .shadow-text {

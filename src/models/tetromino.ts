@@ -102,6 +102,35 @@ export function randomTetromino(): Tetromino {
   return createByType(bag.shift()!);
 }
 
+// シード付き bag/7-bag 生成器
+export function createTetrominoGenerator(seed?: number) {
+  let bag: TetrominoType[] = [];
+  let rng: () => number;
+  if (seed != null) {
+    let state = seed;
+    rng = () => {
+      state = (state * 9301 + 49297) % 233280;
+      return state / 233280;
+    };
+  } else {
+    rng = Math.random;
+  }
+  function shuffle() {
+    bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+  }
+  return {
+    next(): Tetromino {
+      if (bag.length === 0) shuffle();
+      const type = bag.shift()!;
+      return createByType(type);
+    }
+  };
+}
+
 // SRS回転を試行する関数
 export function rotateTetrominoSRS(
   piece: Tetromino,

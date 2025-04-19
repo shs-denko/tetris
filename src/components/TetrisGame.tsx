@@ -11,8 +11,11 @@ interface TetrisGameProps {
 }
 
 const TetrisGame = (props: TetrisGameProps) => {
-  const player1 = useTetris();
-  const player2 = props.mode === 'versus' ? useTetris() : null;
+  // 対戦時は同じシードを使う
+  const commonSeed = props.mode === 'versus' ? Math.floor(Math.random() * 1e9) : undefined;
+
+  const player1 = useTetris(commonSeed);
+  const player2 = props.mode === 'versus' ? useTetris(commonSeed) : null;
   
   // DAS/ARR 用ステート
   const [leftHeld, setLeftHeld] = createSignal(false);
@@ -186,6 +189,7 @@ const TetrisGame = (props: TetrisGameProps) => {
           currentPiece={player1.currentPiece()} 
           currentPosition={player1.currentPosition()} 
           isGameOver={isGameOver1()}
+          clearingRows={player1.clearingRows()}
         />
         
         <NextPiece pieces={player1.nextPieces()} />
@@ -201,6 +205,7 @@ const TetrisGame = (props: TetrisGameProps) => {
             currentPiece={player2.currentPiece()} 
             currentPosition={player2.currentPosition()} 
             isGameOver={isGameOver2()}
+            clearingRows={player2.clearingRows()}
           />
           
           <div class="flex flex-col gap-4">

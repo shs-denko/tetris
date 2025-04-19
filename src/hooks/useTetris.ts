@@ -1,16 +1,17 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import { Tetromino, randomTetromino, rotateTetrominoSRS } from '../models/tetromino';
+import { Tetromino, rotateTetrominoSRS, createTetrominoGenerator } from '../models/tetromino';
 
 export interface Position {
   row: number;
   col: number;
 }
 
-export const useTetris = () => {
+export const useTetris = (seed?: number) => {
   const BOARD_WIDTH = 10;
   const BOARD_HEIGHT = 20;
   const INITIAL_SPEED = 1000; // ミリ秒
   const MAX_NEXT_PIECES = 3;
+  const CLEAR_ANIMATION_DURATION = 300; // ミリ秒
 
   // ソフトドロップ判定
   const [isSoftDropping, setSoftDropping] = createSignal(false);
@@ -25,6 +26,7 @@ export const useTetris = () => {
   const [board, setBoard] = createSignal<(number | null)[][]>(
     Array(BOARD_HEIGHT).fill(0).map(() => Array(BOARD_WIDTH).fill(null))
   );
+  const [clearingRows, setClearingRows] = createSignal<number[]>([]);
 
   // ゲームの状態
   const [score, setScore] = createSignal(0);
@@ -42,6 +44,8 @@ export const useTetris = () => {
   const [heldPiece, setHoldPiece] = createSignal<Tetromino | null>(null);
   const [canHold, setCanHold] = createSignal(true);
 
+  const generator = createTetrominoGenerator(seed);
+
   // ゲームを初期化する
   const initGame = () => {
     setBoard(Array(BOARD_HEIGHT).fill(0).map(() => Array(BOARD_WIDTH).fill(null)));
@@ -54,7 +58,7 @@ export const useTetris = () => {
     setCanHold(true);
     
     // 初期ピースを設定
-    setNextPieces(Array(MAX_NEXT_PIECES).fill(0).map(() => randomTetromino()));
+    setNextPieces(Array(MAX_NEXT_PIECES).fill(0).map(() => generator.next()));
     getNewPiece();
   };
 
@@ -72,10 +76,7 @@ export const useTetris = () => {
     setCurrentPosition(startPosition);
     
     // 次のピースを更新
-    setNextPieces(prev => {
-      const newPieces = [...prev.slice(1), randomTetromino()];
-      return newPieces;
-    });
+    setNextPieces(prev => [...prev.slice(1), generator.next()]);
     
     // ピースを置けるかチェック
     if (!isValidPosition(startPosition, next.shape)) {
@@ -256,24 +257,22 @@ export const useTetris = () => {
 
   // 完成したラインを消去する
   const clearLines = () => {
-    const newBoard = [...board()];
-    let linesCleared = 0;
-    
-    for (let y = BOARD_HEIGHT - 1; y >= 0; y--) {
-      if (newBoard[y].every(cell => cell !== null)) {
-        // ラインが揃っていたら削除
-        newBoard.splice(y, 1);
-        // 上に新しい空のラインを追加
+    const rowsToClear: number[] = [];
+    board().forEach((row, y) => {
+      if (row.every(cell => cell !== null)) rowsToClear.push(y);
+    });
+    if (rowsToClear.length === 0) return;
+    setClearingRows(rowsToClear);
+    setTimeout(() => {
+      let newBoard = [...board()];
+      rowsToClear.forEach((y, idx) => {
+        newBoard.splice(y - idx, 1);
         newBoard.unshift(Array(BOARD_WIDTH).fill(null));
-        linesCleared++;
-        y++; // 同じ行を再チェック
-      }
-    }
-    
-    if (linesCleared > 0) {
+      });
       setBoard(newBoard);
-      updateScore(linesCleared);
-    }
+      setClearingRows([]);
+      updateScore(rowsToClear.length);
+    }, CLEAR_ANIMATION_DURATION);
   };
 
   // スコアを更新する
@@ -342,6 +341,7 @@ export const useTetris = () => {
     pauseGame: () => setIsPaused(!isPaused()),
     resetGame,
     isGameOver,
-    setSoftDropping
+    setSoftDropping,
+    clearingRows
   };
 };
