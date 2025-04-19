@@ -16,6 +16,12 @@ const TetrisGame = (props: TetrisGameProps) => {
 
   const player1 = useTetris(commonSeed);
   const player2 = props.mode === 'versus' ? useTetris(commonSeed) : null;
+
+  // 対戦時、お互いにお邪魔を送り合う
+  if (props.mode === 'versus' && player2) {
+    player1.setOnAttack(lines => player2.addPendingGarbage(lines));
+    player2.setOnAttack(lines => player1.addPendingGarbage(lines));
+  }
   
   // DAS/ARR 用ステート
   const [leftHeld, setLeftHeld] = createSignal(false);
@@ -187,7 +193,8 @@ const TetrisGame = (props: TetrisGameProps) => {
         <Board 
           board={player1.board()} 
           currentPiece={player1.currentPiece()} 
-          currentPosition={player1.currentPosition()} 
+          currentPosition={player1.currentPosition()}
+          ghostPosition={player1.ghostPosition()}
           isGameOver={isGameOver1()}
           clearingRows={player1.clearingRows()}
         />
@@ -203,7 +210,8 @@ const TetrisGame = (props: TetrisGameProps) => {
           <Board 
             board={player2.board()} 
             currentPiece={player2.currentPiece()} 
-            currentPosition={player2.currentPosition()} 
+            currentPosition={player2.currentPosition()}
+            ghostPosition={player2.ghostPosition()}
             isGameOver={isGameOver2()}
             clearingRows={player2.clearingRows()}
           />

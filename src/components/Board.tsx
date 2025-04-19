@@ -5,6 +5,7 @@ interface BoardProps {
   board: (number | null)[][];
   currentPiece: Tetromino | null;
   currentPosition: Position | null;
+  ghostPosition?: Position | null; // ゴーストの位置を追加
   isGameOver?: boolean; // ゲームオーバー状態を追加
   clearingRows?: number[]; // 行クリア状態を追加
 }
@@ -28,6 +29,21 @@ const Board = (props: BoardProps) => {
         
         if (shape[pieceRow][pieceCol]) {
           return color; // ピースの色を返す
+        }
+      }
+      
+      // ゴーストの位置を描画（現在のピースがある場合は描画しない）
+      if (props.ghostPosition && 
+          rowIndex >= props.ghostPosition.row &&
+          rowIndex < props.ghostPosition.row + shape.length &&
+          colIndex >= props.ghostPosition.col &&
+          colIndex < props.ghostPosition.col + shape[0].length) {
+          
+        const ghostRow = rowIndex - props.ghostPosition.row;
+        const ghostCol = colIndex - props.ghostPosition.col;
+        
+        if (shape[ghostRow][ghostCol]) {
+          return color + 10; // 元のピースの色 + 10 をゴースト用の色インデックスとして使用
         }
       }
     }
@@ -70,6 +86,7 @@ const Board = (props: BoardProps) => {
 
 // テトリミノの色に対応するTailwind CSSのクラス
 const getBgColorClass = (colorValue: number): string => {
+  // 通常の色
   const colorClasses = [
     'bg-gradient-to-br from-cyan-400 to-cyan-600',    // I
     'bg-gradient-to-br from-blue-400 to-blue-600',    // J
@@ -78,9 +95,26 @@ const getBgColorClass = (colorValue: number): string => {
     'bg-gradient-to-br from-green-400 to-green-600',   // S
     'bg-gradient-to-br from-purple-400 to-purple-600',  // T
     'bg-gradient-to-br from-red-400 to-red-600',     // Z
-    'bg-gradient-to-br from-gray-400 to-gray-500'     // ゴースト
+    'bg-gray-700 border border-gray-500 border-opacity-50'  // 未使用？
   ];
   
+  // ゴースト用の色 (より透明度が高い)
+  const ghostColorClasses = [
+    'bg-cyan-900 bg-opacity-40 border border-cyan-500 border-opacity-30',       // I ゴースト
+    'bg-blue-900 bg-opacity-40 border border-blue-500 border-opacity-30',       // J ゴースト
+    'bg-orange-900 bg-opacity-40 border border-orange-500 border-opacity-30',   // L ゴースト
+    'bg-yellow-900 bg-opacity-40 border border-yellow-500 border-opacity-30',   // O ゴースト
+    'bg-green-900 bg-opacity-40 border border-green-500 border-opacity-30',     // S ゴースト
+    'bg-purple-900 bg-opacity-40 border border-purple-500 border-opacity-30',   // T ゴースト
+    'bg-red-900 bg-opacity-40 border border-red-500 border-opacity-30',         // Z ゴースト
+  ];
+  
+  // ゴーストの場合（10〜16）
+  if (colorValue >= 10 && colorValue < 17) {
+    return ghostColorClasses[colorValue - 10];
+  }
+  
+  // 通常の色（0〜7）
   return colorValue >= 0 && colorValue < colorClasses.length 
     ? colorClasses[colorValue] 
     : 'bg-gradient-to-br from-gray-500 to-gray-600';
