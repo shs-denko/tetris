@@ -26,6 +26,7 @@ const TetrisGame = (props: TetrisGameProps) => {
   // DAS/ARR 用ステート
   const [leftHeld, setLeftHeld] = createSignal(false);
   const [rightHeld, setRightHeld] = createSignal(false);
+  const [spaceHeld, setSpaceHeld] = createSignal(false);
   let leftDas: number, leftArr: number, rightDas: number, rightArr: number;
 
   // ゲームオーバー状態管理
@@ -107,7 +108,11 @@ const TetrisGame = (props: TetrisGameProps) => {
       }
       // 回転・ホールド・ハードドロップ
       if (e.key === 'w' || e.key === 'W') player1.rotate();
-      if (e.key === ' ') player1.hardDrop();
+      // クリアアニメーション中はハードドロップを無効化
+      if (e.key === ' ' && !spaceHeld() && player1.clearingRows().length === 0) {
+        player1.hardDrop();
+        setSpaceHeld(true);
+      }
       if (e.key === 'c' || e.key === 'C') player1.holdPiece();
 
       // 対戦モードの場合、プレイヤー2のキー操作（矢印キー）
@@ -116,7 +121,8 @@ const TetrisGame = (props: TetrisGameProps) => {
         if (e.key === 'ArrowRight') player2.moveRight();
         if (e.key === 'ArrowDown') player2.moveDown();
         if (e.key === 'ArrowUp') player2.rotate();
-        if (e.key === 'Enter') player2.hardDrop();
+        // プレイヤー2のハードドロップにも同様の制御
+        if (e.key === 'Enter' && player2.clearingRows().length === 0) player2.hardDrop();
         if (e.key === 'Shift') player2.holdPiece();
       }
     };
@@ -134,6 +140,9 @@ const TetrisGame = (props: TetrisGameProps) => {
       }
       if (e.key === 's' || e.key === 'S') {
         player1.setSoftDropping(false);
+      }
+      if (e.key === ' ') {
+        setSpaceHeld(false);
       }
     };
 

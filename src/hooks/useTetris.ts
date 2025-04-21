@@ -67,6 +67,12 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       return Array(BOARD_WIDTH).fill(8).map((_, i) => i === hole ? null : 8);
     });
     setBoard([...filtered, ...garbageRows]);
+    // 追加：ゴミ適用後に現在のミノが衝突していたらゲームオーバー
+    const cp = currentPiece();
+    const pos = currentPosition();
+    if (cp && pos && !isValidPosition(pos, cp.shape)) {
+      setGameOver(true);
+    }
   };
 
   // お邪魔をキューに追加
@@ -215,14 +221,19 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       return true;
     }
     
-    // 下移動失敗時 → ロックダウン開始
-    if (rowOffset > 0 && !isLockActive) {
-      isLockActive = true;
-      lockMovesLeft = 15;
-      lockTimeout = window.setTimeout(() => {
-        lockPiece();
-        isLockActive = false;
-      }, LOCK_DELAY);
+    // 下移動失敗時 → ロックダウン開始 or 再度落下を試みる
+    if (rowOffset > 0) {
+      if (!isLockActive) {
+        isLockActive = true;
+        lockMovesLeft = 15;
+        lockTimeout = window.setTimeout(() => {
+          lockPiece();
+          isLockActive = false;
+        }, LOCK_DELAY);
+      } else {
+        // 再度落下をキューに入れて深い位置へ
+        setTimeout(() => moveDown(), 0);
+      }
     }
     
     return false;
