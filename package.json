@@ -11,6 +11,7 @@
   "dependencies": {
     "@noble/post-quantum": "^0.4.0",
     "@tailwindcss/vite": "^4.1.4",
+    "base64-arraybuffer": "^1.0.2",
     "hono": "^4.7.7",
     "mongoose": "^8.13.2",
     "node-rsa": "^1.1.1",

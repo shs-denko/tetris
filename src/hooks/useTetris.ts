@@ -67,11 +67,11 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       return Array(BOARD_WIDTH).fill(8).map((_, i) => i === hole ? null : 8);
     });
     setBoard([...filtered, ...garbageRows]);
-    // 追加：ゴミ適用後に現在のミノが衝突していたらゲームオーバー
-    const cp = currentPiece();
+    // 追加：ボード上部切り詰め分だけミノ位置を上に移動
     const pos = currentPosition();
-    if (cp && pos && !isValidPosition(pos, cp.shape)) {
-      setGameOver(true);
+    if (pos) {
+      setCurrentPosition({ row: pos.row - lines, col: pos.col });
+      updateGhostPosition();
     }
   };
 
@@ -107,11 +107,18 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
 
   // スポーン重複防止フラグ
   let spawnLocked = false;
+  // 追加：ロック多重実行防止用フラグ
+  let hasLockedPiece = false;
+  // 追加：ハードドロップ連打防止フラグ
+  let hardDropped = false;
 
   // 新しいピースを取得する
   const getNewPiece = () => {
     if (spawnLocked) return;
     spawnLocked = true;
+    // リセット：ロック済みフラグ＆ハードドロップ連打フラグ
+    hasLockedPiece = false;
+    hardDropped = false;
 
     // 次のピースをセット
     const next = nextPieces()[0];
@@ -221,19 +228,14 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       return true;
     }
     
-    // 下移動失敗時 → ロックダウン開始 or 再度落下を試みる
-    if (rowOffset > 0) {
-      if (!isLockActive) {
-        isLockActive = true;
-        lockMovesLeft = 15;
-        lockTimeout = window.setTimeout(() => {
-          lockPiece();
-          isLockActive = false;
-        }, LOCK_DELAY);
-      } else {
-        // 再度落下をキューに入れて深い位置へ
-        setTimeout(() => moveDown(), 0);
-      }
+    // 下移動失敗時 → ロックダウン開始
+    if (rowOffset > 0 && !isLockActive) {
+      isLockActive = true;
+      lockMovesLeft = 15;
+      lockTimeout = window.setTimeout(() => {
+        lockPiece();
+        isLockActive = false;
+      }, LOCK_DELAY);
     }
     
     return false;
@@ -245,8 +247,29 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
   // 右に移動
   const moveRight = () => movePiece(0, 1);
   
-  // 下に移動
-  const moveDown = () => movePiece(1, 0);
+  // 下に移動（底面到達時は即ロック）
+  const moveDown = () => {
+    const cp = currentPiece();
+    const pos = currentPosition();
+    if (cp && pos) {
+      // ボトムに達したら即ロック
+      if (pos.row + cp.shape.length >= BOARD_HEIGHT) {
+        lockPiece();
+        return;
+      }
+    }
+    if (!movePiece(1, 0)) {
+      const cp2 = currentPiece();
+      const pos2 = currentPosition();
+      if (cp2 && pos2) {
+        const newPos = { row: pos2.row + 1, col: pos2.col };
+        if (isValidPosition(newPos, cp2.shape)) {
+          setCurrentPosition(newPos);
+          updateGhostPosition();
+        }
+      }
+    }
+  };
 
   // ピースを回転する
   const rotate = () => {
@@ -299,6 +322,10 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
 
   // ハードドロップ（一番下まで一気に落とす）
   const hardDrop = () => {
+    // 連打防止
+    if (hardDropped) return;
+    hardDropped = true;
+
     const cp = currentPiece();
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return;
@@ -343,6 +370,10 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
 
   // ピースを固定して新しいピースを取得
   const lockPiece = () => {
+    // 多重ロック防止
+    if (hasLockedPiece) return;
+    hasLockedPiece = true;
+
     if (lockTimeout) {
       clearTimeout(lockTimeout);
       lockTimeout = undefined;
@@ -354,17 +385,14 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const pos = currentPosition();
     if (!cp || !pos) return;
 
-    // 追加：天井付近でロックされた場合はゲームオーバー
-    if (pos.row < 0) {
-      setGameOver(true);
-      return;
-    }
+    // 頭上でロックされた場合は row=0 扱いで落とす
+    const lockStartRow = Math.max(pos.row, 0);
 
     const newBoard = [...board()];
     cp.shape.forEach((row, y) => {
       row.forEach((cell, x) => {
         if (cell) {
-          const boardRow = pos.row + y;
+          const boardRow = lockStartRow + y;
           const boardCol = pos.col + x;
           if (boardRow >= 0 && boardRow < BOARD_HEIGHT && boardCol >= 0 && boardCol < BOARD_WIDTH) {
             newBoard[boardRow][boardCol] = cp.color;

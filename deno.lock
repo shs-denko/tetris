@@ -3,6 +3,7 @@
   "specifiers": {
     "npm:@noble/post-quantum@0.4": "0.4.0",
     "npm:@tailwindcss/vite@^4.1.4": "4.1.4_vite@6.3.2__picomatch@4.0.2",
+    "npm:base64-arraybuffer@^1.0.2": "1.0.2",
     "npm:hono@^4.7.7": "4.7.7",
     "npm:mongoose@^8.13.2": "8.13.2",
     "npm:node-rsa@^1.1.1": "1.1.1",
@@ -504,6 +505,9 @@
         "babel-plugin-jsx-dom-expressions"
       ]
     },
+    "base64-arraybuffer@1.0.2": {
+      "integrity": "sha512-I3yl4r9QB5ZRY3XuJVEPfc2XhZO6YweFPI+UovAzn+8/hb3oJ6lnysaFcjVpkCPfVWFUDvoZ8kmVDP7WyRtYtQ=="
+    },
     "browserslist@4.24.4": {
       "integrity": "sha512-KDi1Ny1gSePi1vm0q4oxSF8b4DR44GF4BbmS2YdhPLOEqd8pDviZOGH/GsmRwoWJ2+5Lr085X7naowMwKHDG1A==",
       "dependencies": [
@@ -914,6 +918,7 @@
       "dependencies": [
         "npm:@noble/post-quantum@0.4",
         "npm:@tailwindcss/vite@^4.1.4",
+        "npm:base64-arraybuffer@^1.0.2",
         "npm:hono@^4.7.7",
         "npm:mongoose@^8.13.2",
         "npm:node-rsa@^1.1.1",
