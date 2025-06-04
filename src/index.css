@@ -79,9 +79,9 @@ body {
   transform: translateX(-50%);
 }
 
-@keyframes puyoFall {
+@keyframes puyoDrop {
   from {
-    transform: translateY(-100%);
+    transform: translateY(var(--startY));
   }
   to {
     transform: translateY(0);
@@ -99,8 +99,8 @@ body {
   }
 }
 
-.animate-puyo-fall {
-  animation: puyoFall 0.2s ease-out;
+.animate-puyo-drop {
+  animation: puyoDrop 0.2s ease-out;
 }
 
 .animate-puyo-clear {

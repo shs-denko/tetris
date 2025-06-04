@@ -1,4 +1,4 @@
-import { Component, createSignal, createEffect } from 'solid-js';
+import { Component, createSignal, createEffect, createMemo } from 'solid-js';
 import { PuyoPair } from '../hooks/usePuyo';
 
 interface Props {
@@ -25,6 +25,30 @@ const PuyoBoard: Component<Props> = (props) => {
   createEffect(() => {
     setPrevBoard(props.board.map(row => [...row]));
   });
+
+  const fallDistances = createMemo(() => {
+    const prev = prevBoard();
+    const next = props.board;
+    const h = next.length;
+    const w = next[0].length;
+    const dist = Array(h)
+      .fill(0)
+      .map(() => Array(w).fill(0));
+    for (let x = 0; x < w; x++) {
+      let p = h - 1;
+      for (let y = h - 1; y >= 0; y--) {
+        const val = next[y][x];
+        if (val !== null) {
+          while (p >= 0 && prev[p][x] === null) p--;
+          if (p >= 0) {
+            dist[y][x] = y - p;
+            p--;
+          }
+        }
+      }
+    }
+    return dist;
+  });
   const getCell = (r:number,c:number) => {
     if(props.pair){
       const { row,col,orientation,colors:cl } = props.pair;
@@ -37,12 +61,6 @@ const PuyoBoard: Component<Props> = (props) => {
     return props.board[r][c];
   };
 
-  const isPairCell = (r:number,c:number) => {
-    if(!props.pair) return false;
-    const { row,col,orientation } = props.pair;
-    const cells = pairCells(row,col,orientation);
-    return cells.some(([y,x])=>y===r && x===c);
-  };
 
   const pairCells = (r:number,c:number,o:number):[number,number][] => {
     const c1:[number,number] = [r,c];
@@ -61,8 +79,8 @@ const PuyoBoard: Component<Props> = (props) => {
           row.map((_, colIndex) => {
             const cv = getCell(rowIndex, colIndex);
             const prevVal = prevBoard()[rowIndex][colIndex];
-            const falling = isPairCell(rowIndex, colIndex);
             const clearing = prevVal !== null && cv === null;
+            const dist = fallDistances()[rowIndex][colIndex];
             return (
               <div
                 style={{
@@ -70,8 +88,9 @@ const PuyoBoard: Component<Props> = (props) => {
                   height: `${size}px`,
                   transform: cv !== null ? 'scale(1)' : 'scale(0)',
                   opacity: cv !== null ? '1' : '0',
-                }}
-                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo ${falling ? 'animate-puyo-fall' : ''} ${clearing ? 'animate-puyo-clear' : ''}`}
+                  '--startY': `-${dist * size}px`
+                } as any}
+                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo ${dist > 0 ? 'animate-puyo-drop' : ''} ${clearing ? 'animate-puyo-clear' : ''}`}
               >
                 {cv !== null && <div class="puyo-mouth" />}
               </div>
