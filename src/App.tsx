@@ -3,6 +3,7 @@ import './App.css';
 import TetrisGame from './components/TetrisGame.tsx';
 import PuyoGame from './components/PuyoGame.tsx';
 import PuyoVersusGame from './components/PuyoVersusGame.tsx';
+import PuyoTetrisGame from './components/PuyoTetrisGame.tsx';
 import { RankingEntry } from './components/Ranking.tsx';
 import KeySettingsModal from './components/KeySettingsModal.tsx';
 import { loadKeyBindings, KeyBindings } from './utils/keyBindings';
@@ -13,6 +14,7 @@ function App() {
     | 'versus'
     | 'puyo'
     | 'puyoVersus'
+    | 'puyoTetris'
     | null
   >(null);
   const [animateTitle, setAnimateTitle] = createSignal(true);
@@ -229,14 +231,22 @@ function App() {
             >
               テトリス
             </button>
+          <button
+            class="bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-lg transition-colors shadow-md"
+            onClick={() =>
+              setGameMode(selectedMode() === 'single' ? 'puyo' : 'puyoVersus')
+            }
+          >
+            ぷよぷよ
+          </button>
+          {selectedMode() === 'versus' && (
             <button
-              class="bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-lg transition-colors shadow-md"
-              onClick={() =>
-                setGameMode(selectedMode() === 'single' ? 'puyo' : 'puyoVersus')
-              }
+              class="bg-green-700 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-lg transition-colors shadow-md"
+              onClick={() => setGameMode('puyoTetris')}
             >
-              ぷよぷよ
+              ぷよ×テト
             </button>
+          )}
           </div>
           <button
             class="mt-4 text-sm text-gray-300 underline"
@@ -267,6 +277,8 @@ function App() {
                 ? 'ぷよぷよ'
                 : gameMode() === 'puyoVersus'
                 ? 'ぷよぷよVS'
+                : gameMode() === 'puyoTetris'
+                ? 'ぷよ×テト'
                 : ''}
             </div>
           </div>
@@ -274,6 +286,9 @@ function App() {
           {gameMode() === 'puyo' && <PuyoGame bindings={keyBindings()} />}
           {gameMode() === 'puyoVersus' && (
             <PuyoVersusGame bindings={keyBindings()} />
+          )}
+          {gameMode() === 'puyoTetris' && (
+            <PuyoTetrisGame bindings={keyBindings()} />
           )}
           {(gameMode() === 'single' || gameMode() === 'versus') && (
             <TetrisGame mode={gameMode() as 'single' | 'versus'} bindings={keyBindings()} />
