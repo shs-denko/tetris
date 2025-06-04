@@ -46,7 +46,7 @@ body {
   position: relative;
   border-radius: 9999px;
   border: 1px solid #111827;
-  transition: transform 0.2s;
+  transition: transform 0.2s, opacity 0.2s;
 }
 
 .puyo::before,
@@ -77,4 +77,32 @@ body {
   background: #000;
   border-radius: 0 0 50% 50%;
   transform: translateX(-50%);
+}
+
+@keyframes puyoFall {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes puyoClear {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+.animate-puyo-fall {
+  animation: puyoFall 0.2s ease-out;
+}
+
+.animate-puyo-clear {
+  animation: puyoClear 0.2s ease-out forwards;
 }

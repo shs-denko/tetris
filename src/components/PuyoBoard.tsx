@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, createSignal, createEffect } from 'solid-js';
 import { PuyoPair } from '../hooks/usePuyo';
 
 interface Props {
@@ -13,11 +13,18 @@ const colors = [
   'puyo-green',
   'puyo-yellow',
   // index 4: ojama
-  'puyo-ojama'
+  'puyo-ojama',
 ];
 
 const PuyoBoard: Component<Props> = (props) => {
   const size = props.cellSize ?? 48;
+  const [prevBoard, setPrevBoard] = createSignal<(number|null)[][]>(
+    props.board.map(row => [...row])
+  );
+
+  createEffect(() => {
+    setPrevBoard(props.board.map(row => [...row]));
+  });
   const getCell = (r:number,c:number) => {
     if(props.pair){
       const { row,col,orientation,colors:cl } = props.pair;
@@ -28,6 +35,13 @@ const PuyoBoard: Component<Props> = (props) => {
       }
     }
     return props.board[r][c];
+  };
+
+  const isPairCell = (r:number,c:number) => {
+    if(!props.pair) return false;
+    const { row,col,orientation } = props.pair;
+    const cells = pairCells(row,col,orientation);
+    return cells.some(([y,x])=>y===r && x===c);
   };
 
   const pairCells = (r:number,c:number,o:number):[number,number][] => {
@@ -46,14 +60,18 @@ const PuyoBoard: Component<Props> = (props) => {
         {props.board.map((row, rowIndex) =>
           row.map((_, colIndex) => {
             const cv = getCell(rowIndex, colIndex);
+            const prevVal = prevBoard()[rowIndex][colIndex];
+            const falling = isPairCell(rowIndex, colIndex);
+            const clearing = prevVal !== null && cv === null;
             return (
               <div
                 style={{
                   width: `${size}px`,
                   height: `${size}px`,
                   transform: cv !== null ? 'scale(1)' : 'scale(0)',
+                  opacity: cv !== null ? '1' : '0',
                 }}
-                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo`}
+                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo ${falling ? 'animate-puyo-fall' : ''} ${clearing ? 'animate-puyo-clear' : ''}`}
               >
                 {cv !== null && <div class="puyo-mouth" />}
               </div>
