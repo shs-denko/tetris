@@ -6,8 +6,11 @@ import GameOverModal from './GameOverModal.tsx';
 import ResultModal from './ResultModal.tsx';
 import { useTetris } from '../hooks/useTetris';
 
+import { KeyBindings } from '../utils/keyBindings';
+
 interface TetrisGameProps {
   mode: 'single' | 'versus';
+  bindings: KeyBindings;
 }
 
 const TetrisGame = (props: TetrisGameProps) => {
@@ -87,7 +90,7 @@ const TetrisGame = (props: TetrisGameProps) => {
     // キー状態管理
     const handleKeyDown = (e: KeyboardEvent) => {
       // 左移動 DAS/ARR
-      if ((e.key === 'a' || e.key === 'A') && !leftHeld()) {
+      if (e.key === props.bindings.moveLeft && !leftHeld()) {
         setLeftHeld(true);
         player1.moveLeft();
         leftDas = window.setTimeout(() => {
@@ -95,7 +98,7 @@ const TetrisGame = (props: TetrisGameProps) => {
         }, 300);
       }
       // 右移動 DAS/ARR
-      if ((e.key === 'd' || e.key === 'D') && !rightHeld()) {
+      if (e.key === props.bindings.moveRight && !rightHeld()) {
         setRightHeld(true);
         player1.moveRight();
         rightDas = window.setTimeout(() => {
@@ -103,17 +106,20 @@ const TetrisGame = (props: TetrisGameProps) => {
         }, 300);
       }
       // ソフトドロップ開始
-      if (e.key === 's' || e.key === 'S') {
+      if (e.key === props.bindings.softDrop) {
         player1.setSoftDropping(true);
       }
       // 回転・ホールド・ハードドロップ
-      if (e.key === 'w' || e.key === 'W') player1.rotate();
+      if (e.key === props.bindings.rotate) player1.rotate();
+      if (e.key === props.bindings.rotate180) player1.rotate180();
       // クリアアニメーション中はハードドロップを無効化
-      if (e.key === ' ' && !spaceHeld() && player1.clearingRows().length === 0) {
+      if (e.key === props.bindings.hardDrop && !spaceHeld() && player1.clearingRows().length === 0) {
         player1.hardDrop();
         setSpaceHeld(true);
       }
-      if (e.key === 'c' || e.key === 'C') player1.holdPiece();
+      if (e.key === props.bindings.hold) player1.holdPiece();
+      if (e.key === props.bindings.pause) player1.pauseGame();
+      if (e.key === props.bindings.reset) restartGame();
 
       // 対戦モードの場合、プレイヤー2のキー操作（矢印キー）
       if (props.mode === 'versus' && player2) {
@@ -128,20 +134,20 @@ const TetrisGame = (props: TetrisGameProps) => {
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'a' || e.key === 'A') {
+      if (e.key === props.bindings.moveLeft) {
         setLeftHeld(false);
         clearTimeout(leftDas);
         clearInterval(leftArr);
       }
-      if (e.key === 'd' || e.key === 'D') {
+      if (e.key === props.bindings.moveRight) {
         setRightHeld(false);
         clearTimeout(rightDas);
         clearInterval(rightArr);
       }
-      if (e.key === 's' || e.key === 'S') {
+      if (e.key === props.bindings.softDrop) {
         player1.setSoftDropping(false);
       }
-      if (e.key === ' ') {
+      if (e.key === props.bindings.hardDrop) {
         setSpaceHeld(false);
       }
     };

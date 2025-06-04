@@ -1,12 +1,26 @@
 import { createSignal, createEffect, onMount } from 'solid-js';
 import './App.css';
 import TetrisGame from './components/TetrisGame.tsx';
+import PuyoGame from './components/PuyoGame.tsx';
+import PuyoVersusGame from './components/PuyoVersusGame.tsx';
+import PuyoTetrisGame from './components/PuyoTetrisGame.tsx';
 import { RankingEntry } from './components/Ranking.tsx';
+import KeySettingsModal from './components/KeySettingsModal.tsx';
+import { loadKeyBindings, KeyBindings } from './utils/keyBindings';
 
 function App() {
-  const [gameMode, setGameMode] = createSignal<'single' | 'versus' | null>(null);
+  const [gameMode, setGameMode] = createSignal<
+    | 'single'
+    | 'versus'
+    | 'puyo'
+    | 'puyoVersus'
+    | 'puyoTetris'
+    | null
+  >(null);
   const [animateTitle, setAnimateTitle] = createSignal(true);
   const [rankings, setRankings] = createSignal<RankingEntry[]>([]);
+  const [keyBindings, setKeyBindings] = createSignal<KeyBindings>(loadKeyBindings());
+  const [showSettings, setShowSettings] = createSignal(false);
   
   // ボタンホバーエフェクト用
   const [hoveredButton, setHoveredButton] = createSignal<string | null>(null);
@@ -80,11 +94,11 @@ function App() {
               </span>
               <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
             </button>
-            
-            <button 
-              class={`relative overflow-hidden group bg-gradient-to-r from-red-600 to-red-800 
-                hover:from-red-500 hover:to-red-600 text-white font-bold py-5 px-6 rounded-lg 
-                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl 
+
+          <button
+              class={`relative overflow-hidden group bg-gradient-to-r from-red-600 to-red-800
+                hover:from-red-500 hover:to-red-600 text-white font-bold py-5 px-6 rounded-lg
+                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
                 border-2 border-transparent hover:border-red-300 transform hover:-translate-y-1
                 ${hoveredButton() === 'versus' ? 'scale-105' : 'scale-100'}`}
               onClick={() => setGameMode('versus')}
@@ -99,6 +113,70 @@ function App() {
               </span>
               <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-orange-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
             </button>
+
+            <button
+              class={`relative overflow-hidden group bg-gradient-to-r from-purple-600 to-purple-800
+                hover:from-purple-500 hover:to-purple-600 text-white font-bold py-5 px-6 rounded-lg
+                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
+                border-2 border-transparent hover:border-purple-300 transform hover:-translate-y-1
+                ${hoveredButton() === 'puyo' ? 'scale-105' : 'scale-100'}`}
+              onClick={() => setGameMode('puyo')}
+              onMouseEnter={() => setHoveredButton('puyo')}
+              onMouseLeave={() => setHoveredButton(null)}
+            >
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="12" cy="12" r="10" stroke-width="2" />
+                </svg>
+                ぷよぷよ
+              </span>
+              <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            </button>
+
+            <button
+              class={`relative overflow-hidden group bg-gradient-to-r from-pink-600 to-pink-800
+                hover:from-pink-500 hover:to-pink-600 text-white font-bold py-5 px-6 rounded-lg
+                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
+                border-2 border-transparent hover:border-pink-300 transform hover:-translate-y-1
+                ${hoveredButton() === 'puyoVersus' ? 'scale-105' : 'scale-100'}`}
+              onClick={() => setGameMode('puyoVersus')}
+              onMouseEnter={() => setHoveredButton('puyoVersus')}
+              onMouseLeave={() => setHoveredButton(null)}
+            >
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <circle cx="8" cy="12" r="6" stroke-width="2" />
+                  <circle cx="16" cy="12" r="6" stroke-width="2" />
+                </svg>
+                ぷよぷよVS
+              </span>
+              <div class="absolute inset-0 bg-gradient-to-r from-pink-400 to-red-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            </button>
+
+            <button
+              class={`relative overflow-hidden group bg-gradient-to-r from-green-600 to-green-800
+                hover:from-green-500 hover:to-green-600 text-white font-bold py-5 px-6 rounded-lg
+                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
+                border-2 border-transparent hover:border-green-300 transform hover:-translate-y-1
+                ${hoveredButton() === 'puyoTetris' ? 'scale-105' : 'scale-100'}`}
+              onClick={() => setGameMode('puyoTetris')}
+              onMouseEnter={() => setHoveredButton('puyoTetris')}
+              onMouseLeave={() => setHoveredButton(null)}
+            >
+              <span class="relative z-10 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <rect x="2" y="9" width="8" height="8" stroke-width="2" />
+                  <circle cx="18" cy="13" r="5" stroke-width="2" />
+                </svg>
+                ぷよ×テト
+              </span>
+              <div class="absolute inset-0 bg-gradient-to-r from-green-400 to-teal-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+            </button>
+
+            <button
+              class="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-colors shadow-md"
+              onClick={() => setShowSettings(true)}
+            >キー設定</button>
             
             {/* 操作方法 */}
             <div class="mt-2 text-gray-400 text-sm bg-gray-800 bg-opacity-50 px-4 py-3 rounded-md border border-gray-700 shadow-md">
@@ -213,12 +291,36 @@ function App() {
               メニューに戻る
             </button>
             <div class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 px-4 py-1 rounded-md border border-gray-700 bg-opacity-20 bg-gray-800">
-              {gameMode() === 'single' ? 'シングルプレイ' : '対戦プレイ'}
+              {gameMode() === 'single'
+                ? 'シングルプレイ'
+                : gameMode() === 'versus'
+                ? '対戦プレイ'
+                : gameMode() === 'puyo'
+                ? 'ぷよぷよ'
+                : gameMode() === 'puyoVersus'
+                ? 'ぷよぷよVS'
+                : 'ぷよ×テト'}
             </div>
           </div>
-          
-          <TetrisGame mode={gameMode()!} />
+
+          {gameMode() === 'puyo' && <PuyoGame bindings={keyBindings()} />}
+          {gameMode() === 'puyoVersus' && (
+            <PuyoVersusGame bindings={keyBindings()} />
+          )}
+          {gameMode() === 'puyoTetris' && (
+            <PuyoTetrisGame bindings={keyBindings()} />
+          )}
+          {(gameMode() === 'single' || gameMode() === 'versus') && (
+            <TetrisGame mode={gameMode() as 'single' | 'versus'} bindings={keyBindings()} />
+          )}
         </div>
+      )}
+      {showSettings() && (
+        <KeySettingsModal
+          bindings={keyBindings()}
+          setBindings={setKeyBindings}
+          onClose={() => setShowSettings(false)}
+        />
       )}
     </div>
   );

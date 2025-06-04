@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import { Tetromino, rotateTetrominoSRS, createTetrominoGenerator } from '../models/tetromino';
+import { Tetromino, rotateTetrominoSRS, rotateTetrominoSRS180, createTetrominoGenerator } from '../models/tetromino';
 
 export interface Position {
   row: number;
@@ -62,15 +62,41 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     if (lines <= 0) return;
     const current = board().slice();
     const filtered = current.slice(lines);
-    const garbageRows = Array(lines).fill(null).map(() => {
-      const hole = Math.floor(Math.random() * BOARD_WIDTH);
-      return Array(BOARD_WIDTH).fill(8).map((_, i) => i === hole ? null : 8);
-    });
+    const garbageRows = Array(lines)
+      .fill(null)
+      .map(() => {
+        const hole = Math.floor(Math.random() * BOARD_WIDTH);
+        return Array(BOARD_WIDTH)
+          .fill(8)
+          .map((_, i) => (i === hole ? null : 8));
+      });
     setBoard([...filtered, ...garbageRows]);
-    // 追加：ボード上部切り詰め分だけミノ位置を上に移動
+
+    // 上に押し出された分だけミノを移動させる
+    const cp = currentPiece();
     const pos = currentPosition();
-    if (pos) {
-      setCurrentPosition({ row: pos.row - lines, col: pos.col });
+    if (cp && pos) {
+      let newRow = pos.row - lines;
+      const limit = -cp.shape.length; // 最大で全て隠れる位置まで
+      // 有効位置になるまで上へ移動
+      while (!isValidPosition({ row: newRow, col: pos.col }, cp.shape)) {
+        newRow--;
+        // それでも置けない場合はゲームオーバー
+        if (newRow < limit) {
+          setGameOver(true);
+          return;
+        }
+      }
+      setCurrentPosition({ row: newRow, col: pos.col });
+
+      // ロックタイマーをリセットし押し出し後の操作を許可
+      if (lockTimeout) {
+        clearTimeout(lockTimeout);
+        lockTimeout = undefined;
+      }
+      isLockActive = false;
+      lockMovesLeft = 15;
+
       updateGhostPosition();
     }
   };
@@ -320,6 +346,24 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     }
   };
 
+  const rotate180 = () => {
+    const cp = currentPiece();
+    const pos = currentPosition();
+    if (!cp || !pos || gameOver() || isPaused()) return;
+
+    const attempts = rotateTetrominoSRS180(cp);
+    for (const { piece: newPiece, offset } of attempts) {
+      const np = { row: pos.row + offset.row, col: pos.col + offset.col };
+      if (isValidPosition(np, newPiece.shape)) {
+        setCurrentPiece(newPiece);
+        setCurrentPosition(np);
+        updateGhostPosition();
+        return;
+      }
+    }
+    updateGhostPosition();
+  };
+
   // ハードドロップ（一番下まで一気に落とす）
   const hardDrop = () => {
     // 連打防止
@@ -519,6 +563,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     moveRight,
     moveDown,
     rotate,
+    rotate180,
     hardDrop,
     holdPiece,
     pauseGame: () => setIsPaused(!isPaused()),
