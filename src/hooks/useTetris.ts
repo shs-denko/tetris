@@ -62,15 +62,31 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     if (lines <= 0) return;
     const current = board().slice();
     const filtered = current.slice(lines);
-    const garbageRows = Array(lines).fill(null).map(() => {
-      const hole = Math.floor(Math.random() * BOARD_WIDTH);
-      return Array(BOARD_WIDTH).fill(8).map((_, i) => i === hole ? null : 8);
-    });
+    const garbageRows = Array(lines)
+      .fill(null)
+      .map(() => {
+        const hole = Math.floor(Math.random() * BOARD_WIDTH);
+        return Array(BOARD_WIDTH)
+          .fill(8)
+          .map((_, i) => (i === hole ? null : 8));
+      });
     setBoard([...filtered, ...garbageRows]);
-    // 追加：ボード上部切り詰め分だけミノ位置を上に移動
+
+    // 上に押し出された分だけミノを移動させる
+    const cp = currentPiece();
     const pos = currentPosition();
-    if (pos) {
-      setCurrentPosition({ row: pos.row - lines, col: pos.col });
+    if (cp && pos) {
+      let newRow = pos.row - lines;
+      // 有効位置になるまで更に上へ移動
+      while (!isValidPosition({ row: newRow, col: pos.col }, cp.shape)) {
+        newRow--;
+        // それでも置けない場合はゲームオーバー
+        if (newRow < -4) {
+          setGameOver(true);
+          break;
+        }
+      }
+      setCurrentPosition({ row: newRow, col: pos.col });
       updateGhostPosition();
     }
   };
