@@ -22,7 +22,7 @@ const PuyoGame = (props: Props) => {
 
   return (
     <div class="flex flex-col items-center gap-4">
-      <PuyoBoard board={game.board()} pair={game.current()} cellSize={props.cellSize ?? 64} />
+      <PuyoBoard board={game.board()} pair={game.current()} cellSize={props.cellSize ?? 48} />
       {game.isGameOver() && (
         <div class="text-red-500 font-bold">ゲームオーバー</div>
       )}

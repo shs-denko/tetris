@@ -164,7 +164,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     }
 
     // 次のピースを更新
-    setNextPieces(prev => [...prev.slice(1), generator.next()]);
+    setNextPieces((prev: Tetromino[]) => [...prev.slice(1), generator.next()]);
     
     // ピースを置けるかチェック
     if (!isValidPosition(startPosition, next.shape)) {
@@ -273,28 +273,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
   // 右に移動
   const moveRight = () => movePiece(0, 1);
   
-  // 下に移動（底面到達時は即ロック）
+  // 下に移動（ロックダウン処理は movePiece に任せる）
   const moveDown = () => {
-    const cp = currentPiece();
-    const pos = currentPosition();
-    if (cp && pos) {
-      // ボトムに達したら即ロック
-      if (pos.row + cp.shape.length >= BOARD_HEIGHT) {
-        lockPiece();
-        return;
-      }
-    }
-    if (!movePiece(1, 0)) {
-      const cp2 = currentPiece();
-      const pos2 = currentPosition();
-      if (cp2 && pos2) {
-        const newPos = { row: pos2.row + 1, col: pos2.col };
-        if (isValidPosition(newPos, cp2.shape)) {
-          setCurrentPosition(newPos);
-          updateGhostPosition();
-        }
-      }
-    }
+    movePiece(1, 0);
   };
 
   // ピースを回転する
@@ -433,8 +414,8 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const lockStartRow = Math.max(pos.row, 0);
 
     const newBoard = [...board()];
-    cp.shape.forEach((row, y) => {
-      row.forEach((cell, x) => {
+    cp.shape.forEach((row: number[], y: number) => {
+      row.forEach((cell: number, x: number) => {
         if (cell) {
           const boardRow = lockStartRow + y;
           const boardCol = pos.col + x;
@@ -452,7 +433,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
   // 完成したラインを消去する
   const clearLines = () => {
     const rowsToClear: number[] = [];
-    board().forEach((row, y) => {
+    board().forEach((row: (number | null)[], y: number) => {
       if (row.every(cell => cell !== null)) rowsToClear.push(y);
     });
     
@@ -469,7 +450,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     setTimeout(() => {
       try {
         // 完成した行を除外し、新しい空行を上部に追加
-        const newBoardFiltered = board().filter((_, y) => !rowsToClear.includes(y));
+        const newBoardFiltered = board().filter((_: (number | null)[], y: number) => !rowsToClear.includes(y));
         const emptyRows = Array(rowsToClear.length)
           .fill(null)
           .map(() => Array(BOARD_WIDTH).fill(null));
@@ -502,12 +483,12 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const linePoints = [40, 100, 300, 1200]; // 1, 2, 3, 4ライン消去時のポイント
     const pointsEarned = linePoints[linesCleared - 1] * level();
     
-    setScore(prev => prev + pointsEarned);
-    setLines(prev => {
+    setScore((prev: number) => prev + pointsEarned);
+    setLines((prev: number) => {
       const newLines = prev + linesCleared;
       // 10ラインごとにレベルアップ
       if (Math.floor(newLines / 10) > Math.floor(prev / 10)) {
-        setLevel(l => l + 1);
+        setLevel((l: number) => l + 1);
       }
       return newLines;
     });
