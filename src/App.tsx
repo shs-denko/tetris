@@ -3,7 +3,6 @@ import './App.css';
 import TetrisGame from './components/TetrisGame.tsx';
 import PuyoGame from './components/PuyoGame.tsx';
 import PuyoVersusGame from './components/PuyoVersusGame.tsx';
-import PuyoTetrisGame from './components/PuyoTetrisGame.tsx';
 import { RankingEntry } from './components/Ranking.tsx';
 import KeySettingsModal from './components/KeySettingsModal.tsx';
 import { loadKeyBindings, KeyBindings } from './utils/keyBindings';
@@ -14,13 +13,13 @@ function App() {
     | 'versus'
     | 'puyo'
     | 'puyoVersus'
-    | 'puyoTetris'
     | null
   >(null);
   const [animateTitle, setAnimateTitle] = createSignal(true);
   const [rankings, setRankings] = createSignal<RankingEntry[]>([]);
   const [keyBindings, setKeyBindings] = createSignal<KeyBindings>(loadKeyBindings());
   const [showSettings, setShowSettings] = createSignal(false);
+  const [selectedMode, setSelectedMode] = createSignal<'single' | 'versus' | null>(null);
   
   // ボタンホバーエフェクト用
   const [hoveredButton, setHoveredButton] = createSignal<string | null>(null);
@@ -71,7 +70,7 @@ function App() {
         DENRIS
       </h1>
       
-      {gameMode() === null ? (
+      {gameMode() === null && selectedMode() === null ? (
         <div class="flex flex-col md:flex-row gap-6 w-full max-w-5xl px-4 relative z-10">
           {/* メインメニュー */}
           <div class="flex flex-col gap-6 md:w-1/2">
@@ -81,7 +80,7 @@ function App() {
                 text-2xl transition-all duration-300 shadow-lg hover:shadow-xl 
                 border-2 border-transparent hover:border-blue-300 transform hover:-translate-y-1
                 ${hoveredButton() === 'single' ? 'scale-105' : 'scale-100'}`}
-              onClick={() => setGameMode('single')}
+              onClick={() => setSelectedMode('single')}
               onMouseEnter={() => setHoveredButton('single')}
               onMouseLeave={() => setHoveredButton(null)}
             >
@@ -101,7 +100,7 @@ function App() {
                 text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
                 border-2 border-transparent hover:border-red-300 transform hover:-translate-y-1
                 ${hoveredButton() === 'versus' ? 'scale-105' : 'scale-100'}`}
-              onClick={() => setGameMode('versus')}
+              onClick={() => setSelectedMode('versus')}
               onMouseEnter={() => setHoveredButton('versus')}
               onMouseLeave={() => setHoveredButton(null)}
             >
@@ -112,65 +111,6 @@ function App() {
                 対戦プレイ
               </span>
               <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-orange-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-            </button>
-
-            <button
-              class={`relative overflow-hidden group bg-gradient-to-r from-purple-600 to-purple-800
-                hover:from-purple-500 hover:to-purple-600 text-white font-bold py-5 px-6 rounded-lg
-                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
-                border-2 border-transparent hover:border-purple-300 transform hover:-translate-y-1
-                ${hoveredButton() === 'puyo' ? 'scale-105' : 'scale-100'}`}
-              onClick={() => setGameMode('puyo')}
-              onMouseEnter={() => setHoveredButton('puyo')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <span class="relative z-10 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="12" cy="12" r="10" stroke-width="2" />
-                </svg>
-                ぷよぷよ
-              </span>
-              <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-            </button>
-
-            <button
-              class={`relative overflow-hidden group bg-gradient-to-r from-pink-600 to-pink-800
-                hover:from-pink-500 hover:to-pink-600 text-white font-bold py-5 px-6 rounded-lg
-                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
-                border-2 border-transparent hover:border-pink-300 transform hover:-translate-y-1
-                ${hoveredButton() === 'puyoVersus' ? 'scale-105' : 'scale-100'}`}
-              onClick={() => setGameMode('puyoVersus')}
-              onMouseEnter={() => setHoveredButton('puyoVersus')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <span class="relative z-10 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <circle cx="8" cy="12" r="6" stroke-width="2" />
-                  <circle cx="16" cy="12" r="6" stroke-width="2" />
-                </svg>
-                ぷよぷよVS
-              </span>
-              <div class="absolute inset-0 bg-gradient-to-r from-pink-400 to-red-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
-            </button>
-
-            <button
-              class={`relative overflow-hidden group bg-gradient-to-r from-green-600 to-green-800
-                hover:from-green-500 hover:to-green-600 text-white font-bold py-5 px-6 rounded-lg
-                text-2xl transition-all duration-300 shadow-lg hover:shadow-xl
-                border-2 border-transparent hover:border-green-300 transform hover:-translate-y-1
-                ${hoveredButton() === 'puyoTetris' ? 'scale-105' : 'scale-100'}`}
-              onClick={() => setGameMode('puyoTetris')}
-              onMouseEnter={() => setHoveredButton('puyoTetris')}
-              onMouseLeave={() => setHoveredButton(null)}
-            >
-              <span class="relative z-10 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <rect x="2" y="9" width="8" height="8" stroke-width="2" />
-                  <circle cx="18" cy="13" r="5" stroke-width="2" />
-                </svg>
-                ぷよ×テト
-              </span>
-              <div class="absolute inset-0 bg-gradient-to-r from-green-400 to-teal-400 opacity-0 group-hover:opacity-20 transition-opacity"></div>
             </button>
 
             <button
@@ -278,12 +218,40 @@ function App() {
             )}
           </div>
         </div>
+      ) : gameMode() === null && selectedMode() !== null ? (
+        <div class="flex flex-col items-center gap-6 relative z-10">
+          <div class="flex gap-6">
+            <button
+              class="bg-blue-700 hover:bg-blue-600 text-white font-bold py-4 px-8 rounded-lg transition-colors shadow-md"
+              onClick={() =>
+                setGameMode(selectedMode() === 'single' ? 'single' : 'versus')
+              }
+            >
+              テトリス
+            </button>
+            <button
+              class="bg-purple-700 hover:bg-purple-600 text-white font-bold py-4 px-8 rounded-lg transition-colors shadow-md"
+              onClick={() =>
+                setGameMode(selectedMode() === 'single' ? 'puyo' : 'puyoVersus')
+              }
+            >
+              ぷよぷよ
+            </button>
+          </div>
+          <button
+            class="mt-4 text-sm text-gray-300 underline"
+            onClick={() => setSelectedMode(null)}
+          >戻る</button>
+        </div>
       ) : (
         <div class="w-full max-w-6xl">
           <div class="mb-6 flex justify-between">
             <button 
               class="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-bold py-2 px-4 rounded-md transition-colors shadow-md hover:shadow-lg flex items-center gap-2 border border-gray-600"
-              onClick={() => setGameMode(null)}
+              onClick={() => {
+                setGameMode(null);
+                setSelectedMode(null);
+              }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -299,16 +267,13 @@ function App() {
                 ? 'ぷよぷよ'
                 : gameMode() === 'puyoVersus'
                 ? 'ぷよぷよVS'
-                : 'ぷよ×テト'}
+                : ''}
             </div>
           </div>
 
           {gameMode() === 'puyo' && <PuyoGame bindings={keyBindings()} />}
           {gameMode() === 'puyoVersus' && (
             <PuyoVersusGame bindings={keyBindings()} />
-          )}
-          {gameMode() === 'puyoTetris' && (
-            <PuyoTetrisGame bindings={keyBindings()} />
           )}
           {(gameMode() === 'single' || gameMode() === 'versus') && (
             <TetrisGame mode={gameMode() as 'single' | 'versus'} bindings={keyBindings()} />
