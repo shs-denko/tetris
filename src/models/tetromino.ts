@@ -248,6 +248,21 @@ export function rotateTetrominoSRS(piece: Tetromino, dir: 1 | -1): SRSResult[] {
   }));
 }
 
+export function rotateTetrominoSRS180(piece: Tetromino): SRSResult[] {
+  const first = rotateTetrominoSRS(piece, 1);
+  const results: SRSResult[] = [];
+  for (const r1 of first) {
+    const second = rotateTetrominoSRS(r1.piece, 1);
+    for (const r2 of second) {
+      results.push({
+        piece: r2.piece,
+        offset: { row: r1.offset.row + r2.offset.row, col: r1.offset.col + r2.offset.col },
+      });
+    }
+  }
+  return results;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // 5. 7‑bag random generator (unchanged interface)
 // ────────────────────────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import { Tetromino, rotateTetrominoSRS, createTetrominoGenerator } from '../models/tetromino';
+import { Tetromino, rotateTetrominoSRS, rotateTetrominoSRS180, createTetrominoGenerator } from '../models/tetromino';
 
 export interface Position {
   row: number;
@@ -320,6 +320,24 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     }
   };
 
+  const rotate180 = () => {
+    const cp = currentPiece();
+    const pos = currentPosition();
+    if (!cp || !pos || gameOver() || isPaused()) return;
+
+    const attempts = rotateTetrominoSRS180(cp);
+    for (const { piece: newPiece, offset } of attempts) {
+      const np = { row: pos.row + offset.row, col: pos.col + offset.col };
+      if (isValidPosition(np, newPiece.shape)) {
+        setCurrentPiece(newPiece);
+        setCurrentPosition(np);
+        updateGhostPosition();
+        return;
+      }
+    }
+    updateGhostPosition();
+  };
+
   // ハードドロップ（一番下まで一気に落とす）
   const hardDrop = () => {
     // 連打防止
@@ -519,6 +537,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     moveRight,
     moveDown,
     rotate,
+    rotate180,
     hardDrop,
     holdPiece,
     pauseGame: () => setIsPaused(!isPaused()),
