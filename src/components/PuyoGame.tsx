@@ -3,9 +3,9 @@ import PuyoBoard from './PuyoBoard.tsx';
 import { usePuyo } from '../hooks/usePuyo';
 import { KeyBindings } from '../utils/keyBindings';
 
-interface Props { bindings: KeyBindings }
+interface Props { bindings: KeyBindings; cellSize?: number }
 
-const PuyoGame = (props:Props) => {
+const PuyoGame = (props: Props) => {
   const game = usePuyo();
 
   onMount(() => {
@@ -22,7 +22,7 @@ const PuyoGame = (props:Props) => {
 
   return (
     <div class="flex flex-col items-center gap-4">
-      <PuyoBoard board={game.board()} pair={game.current()} />
+      <PuyoBoard board={game.board()} pair={game.current()} cellSize={props.cellSize ?? 32} />
       {game.isGameOver() && (
         <div class="text-red-500 font-bold">ゲームオーバー</div>
       )}

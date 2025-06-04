@@ -13,17 +13,22 @@ export const usePuyo = () => {
   const DROP_INTERVAL = 700;
 
   const [board, setBoard] = createSignal<(number|null)[][]>(
-    Array(HEIGHT).fill(0).map(() => Array(WIDTH).fill(null))
+    Array(HEIGHT)
+      .fill(0)
+      .map(() => Array(WIDTH).fill(null))
   );
   const [current, setCurrent] = createSignal<PuyoPair | null>(null);
   const [gameOver, setGameOver] = createSignal(false);
 
   const newPiece = () => {
     const pair: PuyoPair = {
-      row: -1,
-      col: Math.floor(WIDTH/2) -1,
+      row: 0,
+      col: Math.floor(WIDTH / 2) - 1,
       orientation: 0,
-      colors: [Math.floor(Math.random()*4), Math.floor(Math.random()*4)]
+      colors: [
+        Math.floor(Math.random() * 4),
+        Math.floor(Math.random() * 4),
+      ],
     };
     if (!isValidPosition(pair.row, pair.col, pair.orientation)) {
       setGameOver(true);
@@ -76,17 +81,33 @@ export const usePuyo = () => {
     const p = current();
     if (!p) return;
     const cells = pairCells(p.row, p.col, p.orientation);
-    const newBoard = board().map(row => [...row]);
-    cells.forEach(([y,x], idx) => {
+    const newBoard = board().map((row) => [...row]);
+    cells.forEach(([y, x], idx) => {
       if (y >= 0 && y < HEIGHT) newBoard[y][x] = p.colors[idx];
     });
+    applyGravity(newBoard);
     setBoard(newBoard);
     clearGroups();
     newPiece();
   };
 
+  const applyGravity = (b: (number | null)[][]) => {
+    for (let x = 0; x < WIDTH; x++) {
+      let write = HEIGHT - 1;
+      for (let y = HEIGHT - 1; y >= 0; y--) {
+        const val = b[y][x];
+        if (val !== null) {
+          b[write][x] = val;
+          if (write !== y) b[y][x] = null;
+          write--;
+        }
+      }
+      for (let y = write; y >= 0; y--) b[y][x] = null;
+    }
+  };
+
   const clearGroups = () => {
-    const b = board().map(r=>[...r]);
+    const b = board().map((r) => [...r]);
     const visited = Array(HEIGHT).fill(0).map(()=>Array(WIDTH).fill(false));
     let cleared = false;
     for(let y=0;y<HEIGHT;y++){
@@ -113,17 +134,8 @@ export const usePuyo = () => {
         }
       }
     }
-    if(cleared){
-      // apply gravity
-      for(let x=0;x<WIDTH;x++){
-        let stack:number[] = [];
-        for(let y=HEIGHT-1;y>=0;y--){
-          if(b[y][x]!==null) stack.push(b[y][x]!);
-        }
-        for(let y=HEIGHT-1;y>=0;y--){
-          b[y][x]=stack[HEIGHT-1-y] ?? null;
-        }
-      }
+    if (cleared) {
+      applyGravity(b);
       setBoard(b);
       clearGroups();
     } else {

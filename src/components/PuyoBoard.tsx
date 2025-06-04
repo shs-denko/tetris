@@ -2,8 +2,9 @@ import { Component } from 'solid-js';
 import { PuyoPair } from '../hooks/usePuyo';
 
 interface Props {
-  board: (number|null)[][];
+  board: (number | null)[][];
   pair: PuyoPair | null;
+  cellSize?: number;
 }
 
 const colors = [
@@ -14,6 +15,7 @@ const colors = [
 ];
 
 const PuyoBoard: Component<Props> = (props) => {
+  const size = props.cellSize ?? 32;
   const getCell = (r:number,c:number) => {
     if(props.pair){
       const { row,col,orientation,colors:cl } = props.pair;
@@ -37,12 +39,17 @@ const PuyoBoard: Component<Props> = (props) => {
   };
 
   return (
-    <div class="bg-gray-800 p-2 rounded border border-gray-600">
+    <div class="bg-gray-800 p-2 rounded border border-gray-600 inline-block">
       <div class="grid grid-cols-6 gap-[1px] bg-gray-700">
-        {props.board.map((row,rowIndex)=>
-          row.map((_,colIndex)=>{
-            const cv = getCell(rowIndex,colIndex);
-            return <div class={`w-6 h-6 sm:w-8 sm:h-8 ${cv!==null?colors[cv]:'bg-gray-900'} rounded-sm`}/>;
+        {props.board.map((row, rowIndex) =>
+          row.map((_, colIndex) => {
+            const cv = getCell(rowIndex, colIndex);
+            return (
+              <div
+                style={{ width: `${size}px`, height: `${size}px` }}
+                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} rounded-sm`}
+              />
+            );
           })
         )}
       </div>
