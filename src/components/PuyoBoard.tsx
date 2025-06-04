@@ -15,7 +15,7 @@ const colors = [
 ];
 
 const PuyoBoard: Component<Props> = (props) => {
-  const size = props.cellSize ?? 32;
+  const size = props.cellSize ?? 48;
   const getCell = (r:number,c:number) => {
     if(props.pair){
       const { row,col,orientation,colors:cl } = props.pair;
@@ -39,15 +39,15 @@ const PuyoBoard: Component<Props> = (props) => {
   };
 
   return (
-    <div class="bg-gray-800 p-2 rounded border border-gray-600 inline-block">
-      <div class="grid grid-cols-6 gap-[1px] bg-gray-700">
+    <div class="bg-gray-800 p-2 rounded-lg border border-gray-600 inline-block">
+      <div class="grid grid-cols-6 gap-1 bg-gray-700 p-1 rounded">
         {props.board.map((row, rowIndex) =>
           row.map((_, colIndex) => {
             const cv = getCell(rowIndex, colIndex);
             return (
               <div
                 style={{ width: `${size}px`, height: `${size}px` }}
-                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} rounded-sm`}
+                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} rounded-full border border-gray-900`}
               />
             );
           })
