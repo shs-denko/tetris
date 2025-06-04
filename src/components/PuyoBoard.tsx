@@ -15,7 +15,7 @@ const colors = [
 ];
 
 const PuyoBoard: Component<Props> = (props) => {
-  const size = props.cellSize ?? 48;
+  const size = props.cellSize ?? 64;
   const getCell = (r:number,c:number) => {
     if(props.pair){
       const { row,col,orientation,colors:cl } = props.pair;

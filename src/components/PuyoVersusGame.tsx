@@ -32,11 +32,11 @@ const PuyoVersusGame = (props: Props) => {
     <div class="flex gap-4 justify-center">
       <div class="flex flex-col items-center gap-2">
         {/* enlarge board for better visibility in versus mode */}
-        <PuyoBoard board={player1.board()} pair={player1.current()} cellSize={32} />
+        <PuyoBoard board={player1.board()} pair={player1.current()} cellSize={48} />
         {player1.isGameOver() && <div class="text-red-500">ゲームオーバー</div>}
       </div>
       <div class="flex flex-col items-center gap-2">
-        <PuyoBoard board={player2.board()} pair={player2.current()} cellSize={32} />
+        <PuyoBoard board={player2.board()} pair={player2.current()} cellSize={48} />
         {player2.isGameOver() && <div class="text-red-500">ゲームオーバー</div>}
       </div>
     </div>
