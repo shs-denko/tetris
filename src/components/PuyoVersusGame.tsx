@@ -29,7 +29,7 @@ const PuyoVersusGame = (props: Props) => {
   });
 
   return (
-    <div class="flex gap-4">
+    <div class="flex gap-4 justify-center">
       <div class="flex flex-col items-center gap-2">
         {/* enlarge board for better visibility in versus mode */}
         <PuyoBoard board={player1.board()} pair={player1.current()} cellSize={32} />
