@@ -65,6 +65,20 @@ const SPAWN_SHAPES: Record<TetrominoType, number[][]> = {
   ],
 };
 
+// Precompute all 4 orientations for each piece
+const SHAPES: Record<TetrominoType, number[][][]> = {
+  I: [], J: [], L: [], O: [], S: [], T: [], Z: []
+};
+
+for (const type of Object.keys(SPAWN_SHAPES) as TetrominoType[]) {
+  const base = SPAWN_SHAPES[type].map((r) => [...r]);
+  const orientations: number[][][] = [base];
+  for (let i = 1; i < 4; i++) {
+    orientations.push(rotateMatrix(orientations[i - 1], 1));
+  }
+  SHAPES[type] = orientations;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // 2. Utility – square‑matrix rotation
 // ────────────────────────────────────────────────────────────────────────────
@@ -226,9 +240,8 @@ export function rotateTetrominoSRS(piece: Tetromino, dir: 1 | -1): SRSResult[] {
   const to = (from + (dir === 1 ? 1 : 3)) % 4;
   const key = `${from}>${to}`;
 
-  // Rotate shape unless it is O‑piece
-  const newShape =
-    piece.type === 'O' ? piece.shape : rotateMatrix(piece.shape, dir);
+  // Pick the target orientation shape
+  const newShape = SHAPES[piece.type][to];
 
   const kicks =
     piece.type === 'O'
@@ -296,7 +309,7 @@ export function createTetrominoGenerator(seed?: number) {
       return {
         type,
         color: COLOR_MAP[type],
-        shape: SPAWN_SHAPES[type].map((r) => [...r]), // deep copy
+        shape: SHAPES[type][0].map((r) => [...r]), // deep copy
         rotationIndex: 0,
       };
     },
