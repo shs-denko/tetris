@@ -273,21 +273,8 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
   // 右に移動
   const moveRight = () => movePiece(0, 1);
   
-  // 下に移動（これ以上下に行けない場合は即ロック）
+  // 下に移動（ロックダウン処理は movePiece に任せる）
   const moveDown = () => {
-    const cp = currentPiece();
-    const pos = currentPosition();
-    if (!cp || !pos) return;
-
-    const nextPos = { row: pos.row + 1, col: pos.col };
-
-    // 次の位置に置けなけなければ即ロック
-    if (!isValidPosition(nextPos, cp.shape)) {
-      lockPiece();
-      return;
-    }
-
-    // 通常の1マス移動処理
     movePiece(1, 0);
   };
 
