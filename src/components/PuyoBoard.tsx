@@ -8,12 +8,12 @@ interface Props {
 }
 
 const colors = [
-  'bg-red-500',
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-yellow-400',
+  'puyo-red',
+  'puyo-blue',
+  'puyo-green',
+  'puyo-yellow',
   // index 4: ojama
-  'bg-gray-400'
+  'puyo-ojama'
 ];
 
 const PuyoBoard: Component<Props> = (props) => {

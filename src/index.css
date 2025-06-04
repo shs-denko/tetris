@@ -20,3 +20,24 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Puyo Puyo style pieces */
+.puyo-red {
+  background: radial-gradient(circle at 30% 30%, #fee2e2, #f87171 40%, #b91c1c);
+}
+
+.puyo-blue {
+  background: radial-gradient(circle at 30% 30%, #dbeafe, #60a5fa 40%, #1e40af);
+}
+
+.puyo-green {
+  background: radial-gradient(circle at 30% 30%, #dcfce7, #4ade80 40%, #166534);
+}
+
+.puyo-yellow {
+  background: radial-gradient(circle at 30% 30%, #fef9c3, #facc15 40%, #ca8a04);
+}
+
+.puyo-ojama {
+  background: radial-gradient(circle at 30% 30%, #e5e7eb, #9ca3af 40%, #374151);
+}
