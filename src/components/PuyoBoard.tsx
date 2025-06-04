@@ -48,9 +48,15 @@ const PuyoBoard: Component<Props> = (props) => {
             const cv = getCell(rowIndex, colIndex);
             return (
               <div
-                style={{ width: `${size}px`, height: `${size}px` }}
-                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} rounded-full border border-gray-900`}
-              />
+                style={{
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  transform: cv !== null ? 'scale(1)' : 'scale(0)',
+                }}
+                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo`}
+              >
+                {cv !== null && <div class="puyo-mouth" />}
+              </div>
             );
           })
         )}

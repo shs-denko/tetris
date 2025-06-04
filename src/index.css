@@ -41,3 +41,40 @@ body {
 .puyo-ojama {
   background: radial-gradient(circle at 30% 30%, #e5e7eb, #9ca3af 40%, #374151);
 }
+
+.puyo {
+  position: relative;
+  border-radius: 9999px;
+  border: 1px solid #111827;
+  transition: transform 0.2s;
+}
+
+.puyo::before,
+.puyo::after {
+  content: '';
+  position: absolute;
+  top: 30%;
+  width: 18%;
+  height: 18%;
+  background: #000;
+  border-radius: 50%;
+}
+
+.puyo::before {
+  left: 25%;
+}
+
+.puyo::after {
+  right: 25%;
+}
+
+.puyo-mouth {
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  width: 30%;
+  height: 12%;
+  background: #000;
+  border-radius: 0 0 50% 50%;
+  transform: translateX(-50%);
+}
