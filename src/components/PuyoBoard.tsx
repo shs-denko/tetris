@@ -92,7 +92,13 @@ const PuyoBoard: Component<Props> = (props) => {
                 } as any}
                 class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo ${dist > 0 ? 'animate-puyo-drop' : ''} ${clearing ? 'animate-puyo-clear' : ''}`}
               >
-                {cv !== null && <div class="puyo-mouth" />}
+                {cv !== null && (
+                  <>
+                    <div class="puyo-eye left" />
+                    <div class="puyo-eye right" />
+                    <div class="puyo-mouth" />
+                  </>
+                )}
               </div>
             );
           })

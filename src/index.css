@@ -49,32 +49,55 @@ body {
   transition: transform 0.2s, opacity 0.2s;
 }
 
-.puyo::before,
-.puyo::after {
+
+.puyo-eye {
+  position: absolute;
+  top: 28%;
+  width: 24%;
+  height: 28%;
+  background: #fff;
+  border-radius: 50%;
+  border: 1px solid #000;
+}
+
+.puyo-eye::after {
   content: '';
   position: absolute;
-  top: 30%;
-  width: 18%;
-  height: 18%;
+  width: 70%;
+  height: 70%;
   background: #000;
   border-radius: 50%;
+  bottom: 10%;
+  left: 15%;
 }
 
-.puyo::before {
-  left: 25%;
+.puyo-eye::before {
+  content: '';
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  background: #fff;
+  border-radius: 50%;
+  top: 20%;
+  left: 20%;
 }
 
-.puyo::after {
-  right: 25%;
+.puyo-eye.left {
+  left: 22%;
+}
+
+.puyo-eye.right {
+  right: 22%;
 }
 
 .puyo-mouth {
   position: absolute;
-  bottom: 20%;
+  bottom: 18%;
   left: 50%;
-  width: 30%;
-  height: 12%;
-  background: #000;
+  width: 26%;
+  height: 16%;
+  border: 2px solid #000;
+  border-top: none;
   border-radius: 0 0 50% 50%;
   transform: translateX(-50%);
 }
