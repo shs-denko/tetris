@@ -18,7 +18,8 @@ const arrowBindings: KeyBindings = {
 
 const PuyoTetrisGame = (props: Props) => (
   <div class="flex gap-4 justify-center">
-    <PuyoGame bindings={props.bindings} cellSize={32} />
+    {/* make puyo board closer in height to the tetris board */}
+    <PuyoGame bindings={props.bindings} cellSize={54} />
     <TetrisGame mode="single" bindings={arrowBindings} />
   </div>
 );
