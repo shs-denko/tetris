@@ -81,7 +81,7 @@ export const usePuyo = (onClear?: (count:number)=>void) => {
     const p = current();
     if (!p) return;
     const cells = pairCells(p.row, p.col, p.orientation);
-    const newBoard = board().map((row) => [...row]);
+    const newBoard = board().map((row: (number | null)[]) => [...row]);
     cells.forEach(([y, x], idx) => {
       if (y >= 0 && y < HEIGHT) newBoard[y][x] = p.colors[idx];
     });
@@ -107,15 +107,15 @@ export const usePuyo = (onClear?: (count:number)=>void) => {
     }
   };
 
-  const addOjama = (lines:number) => {
-    if(lines<=0) return;
-    setBoard(prev => {
-      const b = prev.map(r => [...r]);
-      for(let i=0;i<lines;i++){
+  const addOjama = (lines: number) => {
+    if (lines <= 0) return;
+    setBoard((prev: (number | null)[][]) => {
+      const b = prev.map(row => [...row]);
+      for (let i = 0; i < lines; i++) {
         const removed = b.shift();
-        if(removed && removed.some(v=>v!==null)) setGameOver(true);
-        const hole = Math.floor(Math.random()*WIDTH);
-        const row = Array(WIDTH).fill(4);
+        if (removed && removed.some(v => v !== null)) setGameOver(true);
+        const hole = Math.floor(Math.random() * WIDTH);
+        const row = Array(WIDTH).fill(4) as (number | null)[];
         row[hole] = null;
         b.push(row);
       }
@@ -124,7 +124,7 @@ export const usePuyo = (onClear?: (count:number)=>void) => {
   };
 
   const clearGroups = () => {
-    const b = board().map((r) => [...r]);
+    const b = board().map((r: (number | null)[]) => [...r]);
     const visited = Array(HEIGHT).fill(0).map(()=>Array(WIDTH).fill(false));
     let cleared = false;
     let clearedCount = 0;
@@ -132,8 +132,8 @@ export const usePuyo = (onClear?: (count:number)=>void) => {
       for(let x=0;x<WIDTH;x++){
         const color = b[y][x];
         if(color===null || color===4 || visited[y][x]) continue;
-        const q:[[number,number]] = [[y,x]];
-        const group:[[number,number]] = [] as any;
+        const q: [number, number][] = [[y, x]];
+        const group: [number, number][] = [];
         visited[y][x]=true;
         while(q.length){
           const [cy,cx] = q.pop()!;
