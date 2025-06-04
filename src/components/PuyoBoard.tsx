@@ -11,7 +11,9 @@ const colors = [
   'bg-red-500',
   'bg-blue-500',
   'bg-green-500',
-  'bg-yellow-400'
+  'bg-yellow-400',
+  // index 4: ojama
+  'bg-gray-400'
 ];
 
 const PuyoBoard: Component<Props> = (props) => {

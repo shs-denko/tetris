@@ -7,7 +7,7 @@ export interface PuyoPair {
   colors: [number, number];
 }
 
-export const usePuyo = () => {
+export const usePuyo = (onClear?: (count:number)=>void) => {
   const WIDTH = 6;
   const HEIGHT = 12;
   const DROP_INTERVAL = 700;
@@ -87,7 +87,8 @@ export const usePuyo = () => {
     });
     applyGravity(newBoard);
     setBoard(newBoard);
-    clearGroups();
+    const cleared = clearGroups();
+    if (cleared > 0 && onClear) onClear(cleared);
     newPiece();
   };
 
@@ -106,14 +107,31 @@ export const usePuyo = () => {
     }
   };
 
+  const addOjama = (lines:number) => {
+    if(lines<=0) return;
+    setBoard(prev => {
+      const b = prev.map(r => [...r]);
+      for(let i=0;i<lines;i++){
+        const removed = b.shift();
+        if(removed && removed.some(v=>v!==null)) setGameOver(true);
+        const hole = Math.floor(Math.random()*WIDTH);
+        const row = Array(WIDTH).fill(4);
+        row[hole] = null;
+        b.push(row);
+      }
+      return b;
+    });
+  };
+
   const clearGroups = () => {
     const b = board().map((r) => [...r]);
     const visited = Array(HEIGHT).fill(0).map(()=>Array(WIDTH).fill(false));
     let cleared = false;
+    let clearedCount = 0;
     for(let y=0;y<HEIGHT;y++){
       for(let x=0;x<WIDTH;x++){
         const color = b[y][x];
-        if(color===null || visited[y][x]) continue;
+        if(color===null || color===4 || visited[y][x]) continue;
         const q:[[number,number]] = [[y,x]];
         const group:[[number,number]] = [] as any;
         visited[y][x]=true;
@@ -130,6 +148,7 @@ export const usePuyo = () => {
         }
         if(group.length>=4){
           cleared=true;
+          clearedCount += group.length;
           group.forEach(([gy,gx])=>{ b[gy][gx]=null; });
         }
       }
@@ -137,10 +156,11 @@ export const usePuyo = () => {
     if (cleared) {
       applyGravity(b);
       setBoard(b);
-      clearGroups();
+      clearedCount += clearGroups();
     } else {
       setBoard(b);
     }
+    return clearedCount;
   };
 
   // game loop
@@ -159,6 +179,7 @@ export const usePuyo = () => {
     moveRight: () => move(0,1),
     softDrop: () => move(1,0),
     rotate,
+    addOjama,
     isGameOver: gameOver
   };
 };

@@ -6,8 +6,8 @@ import { KeyBindings } from '../utils/keyBindings';
 interface Props { bindings: KeyBindings }
 
 const PuyoVersusGame = (props: Props) => {
-  const player1 = usePuyo();
-  const player2 = usePuyo();
+  const player1 = usePuyo((c)=>player2.addOjama(Math.floor(c/4)));
+  const player2 = usePuyo((c)=>player1.addOjama(Math.floor(c/4)));
 
   onMount(() => {
     const handler = (e: KeyboardEvent) => {
