@@ -87,6 +87,15 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
         }
       }
       setCurrentPosition({ row: newRow, col: pos.col });
+
+      // ロックタイマーをリセットし押し出し後の操作を許可
+      if (lockTimeout) {
+        clearTimeout(lockTimeout);
+        lockTimeout = undefined;
+      }
+      isLockActive = false;
+      lockMovesLeft = 15;
+
       updateGhostPosition();
     }
   };
