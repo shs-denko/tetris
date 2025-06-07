@@ -7,6 +7,7 @@ interface Props { bindings: KeyBindings }
 const arrowBindings: KeyBindings = {
   moveLeft: 'ArrowLeft',
   moveRight: 'ArrowRight',
+  rotateLeft: 'Control',
   rotate: 'ArrowUp',
   rotate180: 'Insert',
   softDrop: 'ArrowDown',

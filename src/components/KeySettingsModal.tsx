@@ -6,6 +6,7 @@ interface Props { onClose: () => void; bindings: KeyBindings; setBindings: (b: K
 const actionLabels: Record<keyof KeyBindings, string> = {
   moveLeft: '左移動',
   moveRight: '右移動',
+  rotateLeft: '左回転',
   rotate: '回転',
   rotate180: '180回転',
   softDrop: 'ソフトドロップ',

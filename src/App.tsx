@@ -129,6 +129,7 @@ function App() {
                   <ul class="list-disc list-inside space-y-1">
                     <li>左移動: A</li>
                     <li>右移動: D</li>
+                    <li>左回転: Q</li>
                     <li>回転: W</li>
                     <li>ソフトドロップ: S</li>
                     <li>ハードドロップ: Space</li>
@@ -140,6 +141,7 @@ function App() {
                   <ul class="list-disc list-inside space-y-1">
                     <li>左移動: ←</li>
                     <li>右移動: →</li>
+                    <li>左回転: Ctrl</li>
                     <li>回転: ↑</li>
                     <li>ソフトドロップ: ↓</li>
                     <li>ハードドロップ: Enter</li>
