@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, createSignal, createEffect, createMemo } from 'solid-js';
 import { PuyoPair } from '../hooks/usePuyo';
 
 interface Props {
@@ -8,16 +8,47 @@ interface Props {
 }
 
 const colors = [
-  'bg-red-500',
-  'bg-blue-500',
-  'bg-green-500',
-  'bg-yellow-400',
+  'puyo-red',
+  'puyo-blue',
+  'puyo-green',
+  'puyo-yellow',
   // index 4: ojama
-  'bg-gray-400'
+  'puyo-ojama',
 ];
 
 const PuyoBoard: Component<Props> = (props) => {
   const size = props.cellSize ?? 48;
+  const [prevBoard, setPrevBoard] = createSignal<(number|null)[][]>(
+    props.board.map(row => [...row])
+  );
+
+  createEffect(() => {
+    setPrevBoard(props.board.map(row => [...row]));
+  });
+
+  const fallDistances = createMemo(() => {
+    const prev = prevBoard();
+    const next = props.board;
+    const h = next.length;
+    const w = next[0].length;
+    const dist = Array(h)
+      .fill(0)
+      .map(() => Array(w).fill(0));
+    for (let x = 0; x < w; x++) {
+      let p = h - 1;
+      for (let y = h - 1; y >= 0; y--) {
+        const val = next[y][x];
+        if (val !== null) {
+          while (p >= 0 && prev[p][x] === null) p--;
+          if (p >= 0) {
+            dist[y][x] = y - p;
+            p--;
+          }
+        }
+      }
+    }
+    return dist;
+  });
   const getCell = (r:number,c:number) => {
     if(props.pair){
       const { row,col,orientation,colors:cl } = props.pair;
@@ -29,6 +60,7 @@ const PuyoBoard: Component<Props> = (props) => {
     }
     return props.board[r][c];
   };
+
 
   const pairCells = (r:number,c:number,o:number):[number,number][] => {
     const c1:[number,number] = [r,c];
@@ -46,11 +78,28 @@ const PuyoBoard: Component<Props> = (props) => {
         {props.board.map((row, rowIndex) =>
           row.map((_, colIndex) => {
             const cv = getCell(rowIndex, colIndex);
+            const prevVal = prevBoard()[rowIndex][colIndex];
+            const clearing = prevVal !== null && cv === null;
+            const dist = fallDistances()[rowIndex][colIndex];
             return (
               <div
-                style={{ width: `${size}px`, height: `${size}px` }}
-                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} rounded-full border border-gray-900`}
-              />
+                style={{
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  transform: cv !== null ? 'scale(1)' : 'scale(0)',
+                  opacity: cv !== null ? '1' : '0',
+                  '--startY': `-${dist * size}px`
+                } as any}
+                class={`${cv !== null ? colors[cv] : 'bg-gray-900'} puyo ${dist > 0 ? 'animate-puyo-drop' : ''} ${clearing ? 'animate-puyo-clear' : ''}`}
+              >
+                {cv !== null && (
+                  <>
+                    <div class="puyo-eye left" />
+                    <div class="puyo-eye right" />
+                    <div class="puyo-mouth" />
+                  </>
+                )}
+              </div>
             );
           })
         )}

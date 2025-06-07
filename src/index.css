@@ -20,3 +20,112 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Puyo Puyo style pieces */
+.puyo-red {
+  background: radial-gradient(circle at 30% 30%, #fee2e2, #f87171 40%, #b91c1c);
+}
+
+.puyo-blue {
+  background: radial-gradient(circle at 30% 30%, #dbeafe, #60a5fa 40%, #1e40af);
+}
+
+.puyo-green {
+  background: radial-gradient(circle at 30% 30%, #dcfce7, #4ade80 40%, #166534);
+}
+
+.puyo-yellow {
+  background: radial-gradient(circle at 30% 30%, #fef9c3, #facc15 40%, #ca8a04);
+}
+
+.puyo-ojama {
+  background: radial-gradient(circle at 30% 30%, #e5e7eb, #9ca3af 40%, #374151);
+}
+
+.puyo {
+  position: relative;
+  border-radius: 9999px;
+  border: 1px solid #111827;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+
+.puyo-eye {
+  position: absolute;
+  top: 28%;
+  width: 24%;
+  height: 28%;
+  background: #fff;
+  border-radius: 50%;
+  border: 1px solid #000;
+}
+
+.puyo-eye::after {
+  content: '';
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  background: #000;
+  border-radius: 50%;
+  bottom: 10%;
+  left: 15%;
+}
+
+.puyo-eye::before {
+  content: '';
+  position: absolute;
+  width: 30%;
+  height: 30%;
+  background: #fff;
+  border-radius: 50%;
+  top: 20%;
+  left: 20%;
+}
+
+.puyo-eye.left {
+  left: 22%;
+}
+
+.puyo-eye.right {
+  right: 22%;
+}
+
+.puyo-mouth {
+  position: absolute;
+  bottom: 18%;
+  left: 50%;
+  width: 26%;
+  height: 16%;
+  border: 2px solid #000;
+  border-top: none;
+  border-radius: 0 0 50% 50%;
+  transform: translateX(-50%);
+}
+
+@keyframes puyoDrop {
+  from {
+    transform: translateY(var(--startY));
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes puyoClear {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+.animate-puyo-drop {
+  animation: puyoDrop 0.2s ease-out;
+}
+
+.animate-puyo-clear {
+  animation: puyoClear 0.2s ease-out forwards;
+}
