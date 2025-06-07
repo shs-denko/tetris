@@ -222,6 +222,68 @@ const KI: Record<string, Offset[]> = {
   ],
 };
 
+const K3_180: Record<string, Offset[]> = {
+  '0>2': [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: -1 },
+    { row: 1, col: 0 },
+    { row: -1, col: 0 },
+  ],
+  '2>0': [
+    { row: 0, col: 0 },
+    { row: 0, col: -1 },
+    { row: 0, col: 1 },
+    { row: 1, col: 0 },
+    { row: -1, col: 0 },
+  ],
+  '1>3': [
+    { row: 0, col: 0 },
+    { row: 1, col: 0 },
+    { row: -1, col: 0 },
+    { row: 0, col: -1 },
+    { row: 0, col: 1 },
+  ],
+  '3>1': [
+    { row: 0, col: 0 },
+    { row: -1, col: 0 },
+    { row: 1, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: -1 },
+  ],
+};
+
+const KI_180: Record<string, Offset[]> = {
+  '0>2': [
+    { row: 0, col: 0 },
+    { row: 0, col: -1 },
+    { row: 0, col: 2 },
+    { row: 1, col: 0 },
+    { row: -1, col: 0 },
+  ],
+  '2>0': [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: -2 },
+    { row: 1, col: 0 },
+    { row: -1, col: 0 },
+  ],
+  '1>3': [
+    { row: 0, col: 0 },
+    { row: 1, col: 0 },
+    { row: -2, col: 0 },
+    { row: 0, col: -1 },
+    { row: 0, col: 2 },
+  ],
+  '3>1': [
+    { row: 0, col: 0 },
+    { row: -1, col: 0 },
+    { row: 2, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: -2 },
+  ],
+};
+
 // ────────────────────────────────────────────────────────────────────────────
 // 4. Rotation entry point (API‑compatible with previous code)
 // ────────────────────────────────────────────────────────────────────────────
@@ -274,6 +336,31 @@ export function rotateTetrominoSRS180(piece: Tetromino): SRSResult[] {
     }
   }
   return results;
+}
+
+export function rotateTetrominoSRSX180(piece: Tetromino): SRSResult[] {
+  const from = piece.rotationIndex;
+  const to = (from + 2) % 4;
+  const key = `${from}>${to}`;
+
+  const newShape = SHAPES[piece.type][to];
+
+  const kicks =
+    piece.type === 'O'
+      ? [{ row: 0, col: 0 }]
+      : piece.type === 'I'
+      ? KI_180[key]
+      : K3_180[key];
+
+  return kicks.map((offset) => ({
+    offset,
+    piece: {
+      type: piece.type,
+      color: piece.color,
+      shape: newShape,
+      rotationIndex: to,
+    },
+  }));
 }
 
 // ────────────────────────────────────────────────────────────────────────────
