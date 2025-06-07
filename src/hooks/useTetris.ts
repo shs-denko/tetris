@@ -327,6 +327,51 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     }
   };
 
+  const rotateLeft = () => {
+    const cp = currentPiece();
+    const pos = currentPosition();
+    if (!cp || !pos || gameOver() || isPaused()) return;
+
+    const now = Date.now();
+    if (isRotating || now - lastRotationTime < 50) return;
+
+    try {
+      isRotating = true;
+      lastRotationTime = now;
+
+      const attempts = rotateTetrominoSRS(cp, -1);
+      for (const { piece: newPiece, offset } of attempts) {
+        const np = { row: pos.row + offset.row, col: pos.col + offset.col };
+        if (isValidPosition(np, newPiece.shape)) {
+          setCurrentPiece(newPiece);
+          setCurrentPosition(np);
+          updateGhostPosition();
+
+          const belowPos = { row: np.row + 1, col: np.col };
+          if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+            isLockActive = true;
+            lockMovesLeft = 15;
+            lockTimeout = window.setTimeout(() => {
+              lockPiece();
+              isLockActive = false;
+            }, LOCK_DELAY);
+          }
+
+          if (isLockActive && lockTimeout) {
+            clearTimeout(lockTimeout);
+            lockTimeout = window.setTimeout(() => {
+              if (!gameOver()) { lockPiece(); isLockActive = false; }
+            }, LOCK_DELAY);
+          }
+          return;
+        }
+      }
+      updateGhostPosition();
+    } finally {
+      setTimeout(() => { isRotating = false; }, 50);
+    }
+  };
+
   const rotate180 = () => {
     const cp = currentPiece();
     const pos = currentPosition();
@@ -543,6 +588,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     moveLeft,
     moveRight,
     moveDown,
+    rotateLeft,
     rotate,
     rotate180,
     hardDrop,

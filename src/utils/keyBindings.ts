@@ -1,6 +1,7 @@
 export interface KeyBindings {
   moveLeft: string;
   moveRight: string;
+  rotateLeft: string;
   rotate: string;
   rotate180: string;
   softDrop: string;
@@ -13,6 +14,7 @@ export interface KeyBindings {
 export const defaultKeyBindings: KeyBindings = {
   moveLeft: 'a',
   moveRight: 'd',
+  rotateLeft: 'q',
   rotate: 'w',
   rotate180: 'x',
   softDrop: 's',
