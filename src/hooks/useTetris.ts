@@ -442,6 +442,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
 
     // 頭上でロックされた場合は row=0 扱いで落とす
     const lockStartRow = Math.max(pos.row, 0);
+    if (pos.row < 0) {
+      setGameOver(true);
+    }
 
     const newBoard = [...board()];
     cp.shape.forEach((row: number[], y: number) => {
@@ -470,7 +473,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     // 行クリア処理中フラグ
     if (rowsToClear.length === 0) {
       // ライン消去なしなら即座に次のピース
-      getNewPiece();
+      if (!gameOver()) {
+        getNewPiece();
+      }
       return;
     }
     
@@ -499,11 +504,15 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
         onAttack(sent);
         
         // 行削除後に次のピース取得（確実に1回だけ呼ぶ）
-        getNewPiece();
+        if (!gameOver()) {
+          getNewPiece();
+        }
       } catch (e) {
         console.error('Line clearing error:', e);
         // エラー時にもピースを出す
-        getNewPiece();
+        if (!gameOver()) {
+          getNewPiece();
+        }
       }
     }, CLEAR_ANIMATION_DURATION);
   };
