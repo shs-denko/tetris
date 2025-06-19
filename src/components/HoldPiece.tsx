@@ -1,4 +1,4 @@
-import { Tetromino } from '../models/tetromino.tsx';
+import { Tetromino } from '../models/tetromino';
 
 interface HoldPieceProps {
   piece: Tetromino | null;
