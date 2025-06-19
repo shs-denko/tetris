@@ -371,27 +371,66 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       setTimeout(() => { isRotating = false; }, 50);
     }
   };
+const rotate180 = () => {
+  const cp = currentPiece();
+  const pos = currentPosition();
+  if (!cp || !pos || gameOver() || isPaused()) return;
 
-  const rotate180 = () => {
-    const cp = currentPiece();
-    const pos = currentPosition();
-    if (!cp || !pos || gameOver() || isPaused()) return;
+  const now = Date.now();
+  // 連打／並行回転の抑制
+  if (isRotating || now - lastRotationTime < 50) return;
 
+  try {
+    isRotating = true;
+    lastRotationTime = now;
+
+    // ① X-180 キックと SRS 180 キックの両方を試す
     const attempts = [
       ...rotateTetrominoSRSX180(cp),
       ...rotateTetrominoSRS180(cp),
     ];
+
     for (const { piece: newPiece, offset } of attempts) {
       const np = { row: pos.row + offset.row, col: pos.col + offset.col };
-      if (isValidPosition(np, newPiece.shape)) {
-        setCurrentPiece(newPiece);
-        setCurrentPosition(np);
-        updateGhostPosition();
-        return;
+      if (!isValidPosition(np, newPiece.shape)) continue;
+
+      // ここで回転を確定
+      setCurrentPiece(newPiece);
+      setCurrentPosition(np);
+      updateGhostPosition();
+
+      // ② 回転後に着地している場合はロックダウン開始
+      const belowPos = { row: np.row + 1, col: np.col };
+      if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+        isLockActive = true;
+        lockMovesLeft = 15;
+        lockTimeout = window.setTimeout(() => {
+          lockPiece();
+          isLockActive = false;
+        }, LOCK_DELAY);
       }
+
+      // 既存のロックタイマーが動いていればリセット
+      if (isLockActive && lockTimeout) {
+        clearTimeout(lockTimeout);
+        lockTimeout = window.setTimeout(() => {
+          if (!gameOver()) {
+            lockPiece();
+            isLockActive = false;
+          }
+        }, LOCK_DELAY);
+      }
+      return; // 成功したら抜ける
     }
+
+    // どのキックも失敗した場合でもゴーストを更新
     updateGhostPosition();
-  };
+  } finally {
+    // デバウンス解除
+    setTimeout(() => (isRotating = false), 50);
+  }
+};
+
 
   // ハードドロップ（一番下まで一気に落とす）
   const hardDrop = () => {
@@ -460,6 +499,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
 
     // 頭上でロックされた場合は row=0 扱いで落とす
     const lockStartRow = Math.max(pos.row, 0);
+    if (pos.row < 0) {
+      setGameOver(true);
+    }
 
     const newBoard = [...board()];
     cp.shape.forEach((row: number[], y: number) => {
@@ -488,7 +530,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     // 行クリア処理中フラグ
     if (rowsToClear.length === 0) {
       // ライン消去なしなら即座に次のピース
-      getNewPiece();
+      if (!gameOver()) {
+        getNewPiece();
+      }
       return;
     }
     
@@ -517,11 +561,15 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
         onAttack(sent);
         
         // 行削除後に次のピース取得（確実に1回だけ呼ぶ）
-        getNewPiece();
+        if (!gameOver()) {
+          getNewPiece();
+        }
       } catch (e) {
         console.error('Line clearing error:', e);
         // エラー時にもピースを出す
-        getNewPiece();
+        if (!gameOver()) {
+          getNewPiece();
+        }
       }
     }, CLEAR_ANIMATION_DURATION);
   };
