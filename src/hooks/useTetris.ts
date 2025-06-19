@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import { Tetromino, rotateTetrominoSRS, rotateTetrominoSRSX180, createTetrominoGenerator } from '../models/tetromino';
+import { Tetromino, rotateTetrominoSRS, rotateTetrominoSRS180, rotateTetrominoSRSX180, createTetrominoGenerator } from '../models/tetromino';
 
 export interface Position {
   row: number;
@@ -377,7 +377,10 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return;
 
-    const attempts = rotateTetrominoSRSX180(cp);
+    const attempts = [
+      ...rotateTetrominoSRSX180(cp),
+      ...rotateTetrominoSRS180(cp),
+    ];
     for (const { piece: newPiece, offset } of attempts) {
       const np = { row: pos.row + offset.row, col: pos.col + offset.col };
       if (isValidPosition(np, newPiece.shape)) {
