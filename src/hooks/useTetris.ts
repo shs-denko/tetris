@@ -332,6 +332,13 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return;
 
+    const now = Date.now();
+    if (isRotating || now - lastRotationTime < 50) return;
+
+    try {
+      isRotating = true;
+      lastRotationTime = now;
+
     const attempts = rotateTetrominoSRS180(cp);
     for (const { piece: newPiece, offset } of attempts) {
       const np = { row: pos.row + offset.row, col: pos.col + offset.col };
@@ -343,6 +350,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       }
     }
     updateGhostPosition();
+    } finally {
+      setTimeout(() => { isRotating = false; }, 50);
+    }
   };
 
   // ハードドロップ（一番下まで一気に落とす）
