@@ -1,4 +1,26 @@
 import { RankingEntry } from '../components/Ranking';
+import { ml_dsa44 } from '@noble/post-quantum/ml-dsa';
+import { encode, decode } from 'base64-arraybuffer';
+
+// 秘密鍵をクライアントコードに埋め込む (Base64 形式)
+const SECRET_KEY_B64 = '610II3p2MK4gjZtR2UOMNdl2jX1OpkyLMLt02Mrmz24=';
+const PRIVATE_KEY = new Uint8Array(decode(SECRET_KEY_B64));
+
+// サーバーへスコアを送信
+export const sendScoreToServer = async (entry: RankingEntry) => {
+  const message = JSON.stringify(entry);
+  const signature = ml_dsa44.sign(new TextEncoder().encode(message), PRIVATE_KEY);
+  const signatureB64 = encode(signature);
+
+  await fetch('/api/ranking', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': signatureB64,
+    },
+    body: message,
+  });
+};
 
 export const saveScore = (name: string, score: number, lines: number, level: number) => {
   const newEntry: RankingEntry = {
