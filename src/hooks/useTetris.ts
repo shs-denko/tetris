@@ -1,5 +1,5 @@
 import { createSignal, createEffect, onCleanup } from 'solid-js';
-import { Tetromino, rotateTetrominoSRS, rotateTetrominoSRS180, createTetrominoGenerator } from '../models/tetromino';
+import { Tetromino, rotateTetrominoSRS, rotateTetrominoSRS180, rotateTetrominoSRSX180, createTetrominoGenerator } from '../models/tetromino';
 
 export interface Position {
   row: number;
@@ -327,7 +327,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     }
   };
 
-  const rotate180 = () => {
+  const rotateLeft = () => {
     const cp = currentPiece();
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return;
@@ -339,7 +339,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       isRotating = true;
       lastRotationTime = now;
 
-      const attempts = rotateTetrominoSRS180(cp);
+      const attempts = rotateTetrominoSRS(cp, -1);
       for (const { piece: newPiece, offset } of attempts) {
         const np = { row: pos.row + offset.row, col: pos.col + offset.col };
         if (isValidPosition(np, newPiece.shape)) {
@@ -347,7 +347,6 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
           setCurrentPosition(np);
           updateGhostPosition();
 
-          // 追加：回転後に下に動けなければロックダウン開始
           const belowPos = { row: np.row + 1, col: np.col };
           if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
             isLockActive = true;
@@ -358,7 +357,6 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
             }, LOCK_DELAY);
           }
 
-          // 既存のロックタイマーリセット処理
           if (isLockActive && lockTimeout) {
             clearTimeout(lockTimeout);
             lockTimeout = window.setTimeout(() => {
@@ -368,12 +366,71 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
           return;
         }
       }
-      // 全試行失敗時もゴースト更新
       updateGhostPosition();
     } finally {
       setTimeout(() => { isRotating = false; }, 50);
     }
   };
+const rotate180 = () => {
+  const cp = currentPiece();
+  const pos = currentPosition();
+  if (!cp || !pos || gameOver() || isPaused()) return;
+
+  const now = Date.now();
+  // 連打／並行回転の抑制
+  if (isRotating || now - lastRotationTime < 50) return;
+
+  try {
+    isRotating = true;
+    lastRotationTime = now;
+
+    // ① X-180 キックと SRS 180 キックの両方を試す
+    const attempts = [
+      ...rotateTetrominoSRSX180(cp),
+      ...rotateTetrominoSRS180(cp),
+    ];
+
+    for (const { piece: newPiece, offset } of attempts) {
+      const np = { row: pos.row + offset.row, col: pos.col + offset.col };
+      if (!isValidPosition(np, newPiece.shape)) continue;
+
+      // ここで回転を確定
+      setCurrentPiece(newPiece);
+      setCurrentPosition(np);
+      updateGhostPosition();
+
+      // ② 回転後に着地している場合はロックダウン開始
+      const belowPos = { row: np.row + 1, col: np.col };
+      if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+        isLockActive = true;
+        lockMovesLeft = 15;
+        lockTimeout = window.setTimeout(() => {
+          lockPiece();
+          isLockActive = false;
+        }, LOCK_DELAY);
+      }
+
+      // 既存のロックタイマーが動いていればリセット
+      if (isLockActive && lockTimeout) {
+        clearTimeout(lockTimeout);
+        lockTimeout = window.setTimeout(() => {
+          if (!gameOver()) {
+            lockPiece();
+            isLockActive = false;
+          }
+        }, LOCK_DELAY);
+      }
+      return; // 成功したら抜ける
+    }
+
+    // どのキックも失敗した場合でもゴーストを更新
+    updateGhostPosition();
+  } finally {
+    // デバウンス解除
+    setTimeout(() => (isRotating = false), 50);
+  }
+};
+
 
   // ハードドロップ（一番下まで一気に落とす）
   const hardDrop = () => {
@@ -582,6 +639,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     moveLeft,
     moveRight,
     moveDown,
+    rotateLeft,
     rotate,
     rotate180,
     hardDrop,

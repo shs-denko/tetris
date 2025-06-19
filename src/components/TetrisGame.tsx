@@ -108,6 +108,7 @@ const TetrisGame = (props: TetrisGameProps) => {
         player1.setSoftDropping(true);
       }
       // 回転・ホールド・ハードドロップ
+      if (e.key === props.bindings.rotateLeft) player1.rotateLeft();
       if (e.key === props.bindings.rotate) player1.rotate();
       if (e.key === props.bindings.rotate180) player1.rotate180();
       // クリアアニメーション中はハードドロップを無効化
@@ -124,6 +125,7 @@ const TetrisGame = (props: TetrisGameProps) => {
         if (e.key === 'ArrowLeft') player2.moveLeft();
         if (e.key === 'ArrowRight') player2.moveRight();
         if (e.key === 'ArrowDown') player2.moveDown();
+        if (e.key === 'Control') player2.rotateLeft();
         if (e.key === 'ArrowUp') player2.rotate();
         // プレイヤー2のハードドロップにも同様の制御
         if (e.key === 'Enter' && player2.clearingRows().length === 0) player2.hardDrop();
