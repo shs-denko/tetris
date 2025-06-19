@@ -152,7 +152,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     
     // 開始位置を設定
     const startPosition = {
-      row: 0,
+      row: -2,
       col: Math.floor((BOARD_WIDTH - next.shape[0].length) / 2)
     };
     setCurrentPosition(startPosition);
@@ -463,7 +463,7 @@ const rotate180 = () => {
     if (currentHold) {
       setCurrentPiece(currentHold);
       const startPosition = {
-        row: 0,
+        row: -2,
         col: Math.floor((BOARD_WIDTH - currentHold.shape[0].length) / 2)
       };
       setCurrentPosition(startPosition);
