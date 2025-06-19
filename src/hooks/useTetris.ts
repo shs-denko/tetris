@@ -332,17 +332,47 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const pos = currentPosition();
     if (!cp || !pos || gameOver() || isPaused()) return;
 
-    const attempts = rotateTetrominoSRS180(cp);
-    for (const { piece: newPiece, offset } of attempts) {
-      const np = { row: pos.row + offset.row, col: pos.col + offset.col };
-      if (isValidPosition(np, newPiece.shape)) {
-        setCurrentPiece(newPiece);
-        setCurrentPosition(np);
-        updateGhostPosition();
-        return;
+    const now = Date.now();
+    if (isRotating || now - lastRotationTime < 50) return;
+
+    try {
+      isRotating = true;
+      lastRotationTime = now;
+
+      const attempts = rotateTetrominoSRS180(cp);
+      for (const { piece: newPiece, offset } of attempts) {
+        const np = { row: pos.row + offset.row, col: pos.col + offset.col };
+        if (isValidPosition(np, newPiece.shape)) {
+          setCurrentPiece(newPiece);
+          setCurrentPosition(np);
+          updateGhostPosition();
+
+          // 追加：回転後に下に動けなければロックダウン開始
+          const belowPos = { row: np.row + 1, col: np.col };
+          if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+            isLockActive = true;
+            lockMovesLeft = 15;
+            lockTimeout = window.setTimeout(() => {
+              lockPiece();
+              isLockActive = false;
+            }, LOCK_DELAY);
+          }
+
+          // 既存のロックタイマーリセット処理
+          if (isLockActive && lockTimeout) {
+            clearTimeout(lockTimeout);
+            lockTimeout = window.setTimeout(() => {
+              if (!gameOver()) { lockPiece(); isLockActive = false; }
+            }, LOCK_DELAY);
+          }
+          return;
+        }
       }
+      // 全試行失敗時もゴースト更新
+      updateGhostPosition();
+    } finally {
+      setTimeout(() => { isRotating = false; }, 50);
     }
-    updateGhostPosition();
   };
 
   // ハードドロップ（一番下まで一気に落とす）
