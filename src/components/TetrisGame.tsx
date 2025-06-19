@@ -7,6 +7,7 @@ import ResultModal from './ResultModal.tsx';
 import { useTetris } from '../hooks/useTetris';
 
 import { KeyBindings } from '../utils/keyBindings';
+import { sendScoreToServer } from '../utils/rankingService';
 
 interface TetrisGameProps {
   mode: 'single' | 'versus';
@@ -38,18 +39,18 @@ const TetrisGame = (props: TetrisGameProps) => {
   const [showResult, setShowResult] = createSignal(false);
 
   // スコア保存時の処理
-  const saveScore = (name: string) => {
+  const saveScore = async (name: string) => {
     const currentDate = new Date();
-    const scoreEntry = {
+    const entry = {
       name,
       score: player1.score(),
       lines: player1.lines(),
       level: player1.level(),
-      date: currentDate.toLocaleDateString()
+      date: currentDate.toLocaleDateString(),
     };
-    
-    // 既存のランキングを読み込む
-    let rankings = [];
+
+    // ローカル保存
+    let rankings = [] as any[];
     const storedRankings = localStorage.getItem('tetrisRankings');
     if (storedRankings) {
       try {
@@ -58,20 +59,17 @@ const TetrisGame = (props: TetrisGameProps) => {
         console.error('ランキングデータの読み込みに失敗しました', e);
       }
     }
-    
-    // 新しいスコアを追加
-    rankings.push(scoreEntry);
-    
-    // スコア順にソート
-    rankings.sort((a: { score: number; }, b: { score: number; }) => b.score - a.score);
-    
-    // 最大10件に制限
-    if (rankings.length > 10) {
-      rankings = rankings.slice(0, 10);
-    }
-    
-    // ランキングを保存
+    rankings.push(entry);
+    rankings.sort((a: { score: number }, b: { score: number }) => b.score - a.score);
+    if (rankings.length > 10) rankings = rankings.slice(0, 10);
     localStorage.setItem('tetrisRankings', JSON.stringify(rankings));
+
+    // サーバー送信
+    try {
+      await sendScoreToServer(entry);
+    } catch (e) {
+      console.error('サーバーへのスコア送信に失敗しました', e);
+    }
   };
 
   // ゲームの再開
