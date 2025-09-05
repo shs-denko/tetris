@@ -169,19 +169,34 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     // 次のピースを更新
     setNextPieces((prev: Tetromino[]) => [...prev.slice(1), generator.next()]);
     
-    // ピースを置けるかチェック（より緩い条件でチェック）
-    // スポーン位置が完全にブロックされている場合のみゲームオーバー
-    let canSpawn = false;
-    for (let testRow = startPosition.row; testRow >= startPosition.row - 2; testRow--) {
-      if (isValidPosition({ row: testRow, col: startPosition.col }, next.shape)) {
-        canSpawn = true;
-        setCurrentPosition({ row: testRow, col: startPosition.col });
-        break;
-      }
-    }
+    // まず標準位置で配置を試す
+    setCurrentPosition(startPosition);
     
-    if (!canSpawn) {
-      setGameOver(true);
+    // 標準位置で配置できない場合の処理
+    if (!isValidPosition(startPosition, next.shape)) {
+      // ピースの可視部分（row >= 0）がブロックされているかチェック
+      let visibleBlocked = false;
+      for (let y = 0; y < next.shape.length; y++) {
+        for (let x = 0; x < next.shape[y].length; x++) {
+          if (next.shape[y][x]) {
+            const boardRow = startPosition.row + y;
+            const boardCol = startPosition.col + x;
+            if (boardRow >= 0 && boardRow < BOARD_HEIGHT && 
+                boardCol >= 0 && boardCol < BOARD_WIDTH && 
+                board()[boardRow][boardCol] !== null) {
+              visibleBlocked = true;
+              break;
+            }
+          }
+        }
+        if (visibleBlocked) break;
+      }
+      
+      // 可視部分がブロックされている場合のみゲームオーバー
+      if (visibleBlocked) {
+        setGameOver(true);
+        return;
+      }
     }
     
     // ホールドをリセット
@@ -267,8 +282,15 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       return true;
     }
     
+    // 画面上部にある場合は、ロックダウンを開始せずに継続落下させる
+    if (rowOffset > 0 && pos.row < 0) {
+      // 上部では自然落下のみ、ロックダウンなし
+      return false;
+    }
+    
     // 下移動失敗時 → ロックダウン開始
-    if (rowOffset > 0 && !isLockActive) {
+    // ただし、ピースが画面上部（row < 0）にある間はロックダウンしない
+    if (rowOffset > 0 && !isLockActive && pos.row >= 0) {
       isLockActive = true;
       lockMovesLeft = 15;
       lockTimeout = window.setTimeout(() => {
@@ -480,19 +502,25 @@ const rotate180 = () => {
         col: Math.floor((BOARD_WIDTH - currentHold.shape[0].length) / 2)
       };
       
-      // ホールド後の衝突チェックを改善：複数の位置を試す
-      let canPlace = false;
-      for (let testRow = startPosition.row; testRow >= startPosition.row - 2; testRow--) {
-        if (isValidPosition({ row: testRow, col: startPosition.col }, currentHold.shape)) {
-          setCurrentPosition({ row: testRow, col: startPosition.col });
-          canPlace = true;
-          break;
-        }
-      }
+      // まず標準位置で配置を試す
+      setCurrentPosition(startPosition);
       
-      if (!canPlace) {
-        setGameOver(true);
-        return;
+      // 標準位置で配置できない場合の処理
+      if (!isValidPosition(startPosition, currentHold.shape)) {
+        // 上方向に少し移動して再試行
+        let canPlace = false;
+        for (let testRow = startPosition.row - 1; testRow >= startPosition.row - 3; testRow--) {
+          if (isValidPosition({ row: testRow, col: startPosition.col }, currentHold.shape)) {
+            setCurrentPosition({ row: testRow, col: startPosition.col });
+            canPlace = true;
+            break;
+          }
+        }
+        
+        if (!canPlace) {
+          setGameOver(true);
+          return;
+        }
       }
     } else {
       getNewPiece();
