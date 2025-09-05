@@ -77,17 +77,16 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const pos = currentPosition();
     if (cp && pos) {
       let newRow = pos.row - lines;
-      const limit = -cp.shape.length + 1; // より緩い制限：少なくとも1行は見える状態まで
+      const limit = -cp.shape.length; // 最大で全て隠れる位置まで
       
       // 有効位置になるまで上へ移動
-      while (!isValidPosition({ row: newRow, col: pos.col }, cp.shape) && newRow >= limit) {
+      while (!isValidPosition({ row: newRow, col: pos.col }, cp.shape)) {
         newRow--;
-      }
-      
-      // それでも置けない場合はゲームオーバー
-      if (newRow < limit) {
-        setGameOver(true);
-        return;
+        // それでも置けない場合はゲームオーバー
+        if (newRow < limit) {
+          setGameOver(true);
+          return;
+        }
       }
       
       setCurrentPosition({ row: newRow, col: pos.col });
