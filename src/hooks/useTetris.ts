@@ -177,7 +177,25 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     // ピースを置けるかチェック
     // ガベージを適用した場合は receiveGarbage 内でゲームオーバー判定が行われるため、ここでは判定しない
     if (!appliedGarbageThisSpawn) {
-      if (!isValidPosition(startPosition, next.shape)) {
+      // 新しいピースが盤面内（row >= 0）に入る部分で衝突がある場合のみゲームオーバー
+      // 完全に上部にある場合(-2の位置)では判定しない
+      let hasCollisionInVisibleArea = false;
+      for (let y = 0; y < next.shape.length; y++) {
+        for (let x = 0; x < next.shape[y].length; x++) {
+          if (next.shape[y][x]) {
+            const boardRow = startPosition.row + y;
+            const boardCol = startPosition.col + x;
+            if (boardRow >= 0 && boardRow < BOARD_HEIGHT && boardCol >= 0 && boardCol < BOARD_WIDTH) {
+              if (board()[boardRow][boardCol] !== null) {
+                hasCollisionInVisibleArea = true;
+                break;
+              }
+            }
+          }
+        }
+        if (hasCollisionInVisibleArea) break;
+      }
+      if (hasCollisionInVisibleArea) {
         setGameOver(true);
       }
     }
@@ -487,8 +505,24 @@ const rotate180 = () => {
       };
       setCurrentPosition(startPosition);
       
-      // ホールド後の衝突チェック
-      if (!isValidPosition(startPosition, currentHold.shape)) {
+      // ホールド後の衝突チェック - 盤面内で衝突がある場合のみゲームオーバー
+      let hasCollisionInVisibleArea = false;
+      for (let y = 0; y < currentHold.shape.length; y++) {
+        for (let x = 0; x < currentHold.shape[y].length; x++) {
+          if (currentHold.shape[y][x]) {
+            const boardRow = startPosition.row + y;
+            const boardCol = startPosition.col + x;
+            if (boardRow >= 0 && boardRow < BOARD_HEIGHT && boardCol >= 0 && boardCol < BOARD_WIDTH) {
+              if (board()[boardRow][boardCol] !== null) {
+                hasCollisionInVisibleArea = true;
+                break;
+              }
+            }
+          }
+        }
+        if (hasCollisionInVisibleArea) break;
+      }
+      if (hasCollisionInVisibleArea) {
         setGameOver(true);
         return;
       }
@@ -518,8 +552,22 @@ const rotate180 = () => {
     const pos = currentPosition();
     if (!cp || !pos) return;
 
-    // 頭上でロックされた場合はゲームオーバー
-    if (pos.row < 0) {
+    // ピースの一部でも盤面最上部（row 0または1）でロックされた場合はゲームオーバー
+    // 完全に上部エリア（row < 0）のみのロックは許容
+    let hasLockInTopRows = false;
+    for (let y = 0; y < cp.shape.length; y++) {
+      for (let x = 0; x < cp.shape[y].length; x++) {
+        if (cp.shape[y][x]) {
+          const boardRow = pos.row + y;
+          if (boardRow >= 0 && boardRow <= 1) { // 盤面の最上部2行でロックされた場合
+            hasLockInTopRows = true;
+            break;
+          }
+        }
+      }
+      if (hasLockInTopRows) break;
+    }
+    if (hasLockInTopRows) {
       setGameOver(true);
       return;
     }
