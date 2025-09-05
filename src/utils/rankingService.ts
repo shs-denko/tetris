@@ -10,7 +10,7 @@ const PRIVATE_KEY = new Uint8Array(decode(SECRET_KEY_B64));
 export const sendScoreToServer = async (entry: RankingEntry) => {
   const message = JSON.stringify(entry);
   const signature = ml_dsa44.sign(new TextEncoder().encode(message), PRIVATE_KEY);
-  const signatureB64 = encode(signature);
+  const signatureB64 = encode(signature.buffer as ArrayBuffer);
 
   await fetch('/api/ranking', {
     method: 'POST',
