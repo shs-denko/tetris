@@ -78,7 +78,6 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     if (cp && pos) {
       let newRow = pos.row - lines;
       const limit = -cp.shape.length; // 最大で全て隠れる位置まで
-      
       // 有効位置になるまで上へ移動
       while (!isValidPosition({ row: newRow, col: pos.col }, cp.shape)) {
         newRow--;
@@ -88,17 +87,14 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
           return;
         }
       }
-      
       setCurrentPosition({ row: newRow, col: pos.col });
-
-      // ロックタイマーをリセットし押し出し後の操作を許可
+      // ロックタイマー・ロック状態を必ず解除（ガベージ直後は絶対ロックしない）
       if (lockTimeout) {
         clearTimeout(lockTimeout);
         lockTimeout = undefined;
       }
       isLockActive = false;
       lockMovesLeft = 15;
-
       updateGhostPosition();
     }
   };
@@ -267,10 +263,10 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       // 上部では自然落下のみ、ロックダウンなし
       return false;
     }
-    
     // 下移動失敗時 → ロックダウン開始
-    // ただし、ピースが画面上部（row < 0）にある間はロックダウンしない
-    if (rowOffset > 0 && !isLockActive && pos.row >= 0) {
+    // ただし、ピースが画面上部（row < 0）にある間はロックダウンしない（念のため二重ガード）
+    if (rowOffset > 0 && !isLockActive) {
+      if (pos.row < 0) return false;
       isLockActive = true;
       lockMovesLeft = 15;
       lockTimeout = window.setTimeout(() => {
