@@ -77,11 +77,12 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     const pos = currentPosition();
     if (cp && pos) {
       let newRow = pos.row - lines;
-      const limit = -cp.shape.length; // 最大で全て隠れる位置まで
+      const limit = -cp.shape.length - 2; // より寛容な制限（さらに上まで許可）
+      
       // 有効位置になるまで上へ移動
       while (!isValidPosition({ row: newRow, col: pos.col }, cp.shape)) {
         newRow--;
-        // それでも置けない場合はゲームオーバー
+        // 極端に上まで行った場合のみゲームオーバー
         if (newRow < limit) {
           setGameOver(true);
           return;
@@ -537,8 +538,8 @@ const rotate180 = () => {
 
   // ピースを固定して新しいピースを取得
   const lockPiece = () => {
-    // 多重ロック防止
-    if (hasLockedPiece) return;
+    // 多重ロック防止とゲームオーバー状態でのロック防止
+    if (hasLockedPiece || gameOver()) return;
     hasLockedPiece = true;
 
     if (lockTimeout) {
@@ -552,22 +553,22 @@ const rotate180 = () => {
     const pos = currentPosition();
     if (!cp || !pos) return;
 
-    // ピースの一部でも盤面最上部（row 0または1）でロックされた場合はゲームオーバー
-    // 完全に上部エリア（row < 0）のみのロックは許容
-    let hasLockInTopRows = false;
+    // ピースの一部でも盤面最上部（row 0）でロックされ、かつ実際にブロックが配置される場合のみゲームオーバー
+    let hasLockInTopRow = false;
     for (let y = 0; y < cp.shape.length; y++) {
       for (let x = 0; x < cp.shape[y].length; x++) {
         if (cp.shape[y][x]) {
           const boardRow = pos.row + y;
-          if (boardRow >= 0 && boardRow <= 1) { // 盤面の最上部2行でロックされた場合
-            hasLockInTopRows = true;
+          // 盤面の最上行（row 0）でブロックが実際に配置される場合のみ
+          if (boardRow === 0) {
+            hasLockInTopRow = true;
             break;
           }
         }
       }
-      if (hasLockInTopRows) break;
+      if (hasLockInTopRow) break;
     }
-    if (hasLockInTopRows) {
+    if (hasLockInTopRow) {
       setGameOver(true);
       return;
     }
@@ -666,6 +667,8 @@ const rotate180 = () => {
     // ソフトドロップ中は×20速
     const speed = INITIAL_SPEED / level() / (isSoftDropping() ? 20 : 1);
     const intervalId = setInterval(() => {
+      // ゲームオーバー状態やクリア中は自動落下を停止
+      if (gameOver() || isPaused() || clearingRows().length > 0) return;
       moveDown();
     }, speed);
     
