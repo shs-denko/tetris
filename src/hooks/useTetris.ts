@@ -246,6 +246,13 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
         lockPiece();
         return false;
       }
+      // 猶予をリスタート（ホバーしないように再度ロックタイマーを掛け直す）
+      lockTimeout = window.setTimeout(() => {
+        if (!gameOver()) {
+          lockPiece();
+          isLockActive = false;
+        }
+      }, LOCK_DELAY);
     }
     
     const newPosition = { row: pos.row + rowOffset, col: pos.col + colOffset };
@@ -265,15 +272,8 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       return true;
     }
     
-    // 画面上部にある場合は、ロックダウンを開始せずに継続落下させる
-    if (rowOffset > 0 && pos.row < 0) {
-      // 上部では自然落下のみ、ロックダウンなし
-      return false;
-    }
-    // 下移動失敗時 → ロックダウン開始
-    // ただし、ピースが画面上部（row < 0）にある間はロックダウンしない（念のため二重ガード）
+    // 下移動失敗時 → ロックダウン開始（上部でも開始してトップアウトを正しく処理）
     if (rowOffset > 0 && !isLockActive) {
-      if (pos.row < 0) return false;
       isLockActive = true;
       lockMovesLeft = 15;
       lockTimeout = window.setTimeout(() => {
