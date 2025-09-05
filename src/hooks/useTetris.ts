@@ -143,6 +143,13 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     // リセット：ロック済みフラグ＆ハードドロップ連打フラグ
     hasLockedPiece = false;
     hardDropped = false;
+    // 念のためロック状態も完全に初期化（持ち越し防止）
+    if (lockTimeout) {
+      clearTimeout(lockTimeout);
+      lockTimeout = undefined;
+    }
+    isLockActive = false;
+    lockMovesLeft = 15;
 
     // 次のピースをセット
     const next = nextPieces()[0];
@@ -231,7 +238,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     
     // 着地中のロックムーブ上限
     const below = { row: pos.row + 1, col: pos.col };
-    if (rowOffset === 0 && isLockActive && isValidPosition(below, cp.shape) === false) {
+  if (rowOffset === 0 && isLockActive && pos.row >= 0 && isValidPosition(below, cp.shape) === false) {
       // 左右移動 or 回転時：カウント減らし、猶予をリセット
       lockMovesLeft--;
       clearTimeout(lockTimeout);
@@ -368,7 +375,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
             }, LOCK_DELAY);
           }
 
-          if (isLockActive && lockTimeout) {
+          if (isLockActive && lockTimeout && np.row >= 0) {
             clearTimeout(lockTimeout);
             lockTimeout = window.setTimeout(() => {
               if (!gameOver()) { lockPiece(); isLockActive = false; }
@@ -422,7 +429,7 @@ const rotate180 = () => {
       }
 
       // 既存のロックタイマーが動いていればリセット
-      if (isLockActive && lockTimeout) {
+  if (isLockActive && lockTimeout && np.row >= 0) {
         clearTimeout(lockTimeout);
         lockTimeout = window.setTimeout(() => {
           if (!gameOver()) {
