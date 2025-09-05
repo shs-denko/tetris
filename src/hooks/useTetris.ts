@@ -157,20 +157,26 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
       row: -2,
       col: Math.floor((BOARD_WIDTH - next.shape[0].length) / 2)
     };
-    setCurrentPosition(startPosition);
+  setCurrentPosition(startPosition);
     
     // pendingGarbage があれば一括適用
+    // このスポーンターンでガベージを適用したかを記録（スポーン判定の二重実行を避ける）
+    let appliedGarbageThisSpawn = false;
     if (pendingGarbage > 0) {
       receiveGarbage(pendingGarbage);
       pendingGarbage = 0;
+      appliedGarbageThisSpawn = true;
     }
 
     // 次のピースを更新
     setNextPieces((prev: Tetromino[]) => [...prev.slice(1), generator.next()]);
     
     // ピースを置けるかチェック
-    if (!isValidPosition(startPosition, next.shape)) {
-      setGameOver(true);
+    // ガベージを適用した場合は receiveGarbage 内でゲームオーバー判定が行われるため、ここでは判定しない
+    if (!appliedGarbageThisSpawn) {
+      if (!isValidPosition(startPosition, next.shape)) {
+        setGameOver(true);
+      }
     }
     
     // ホールドをリセット
@@ -308,9 +314,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
           setCurrentPosition(np);
           updateGhostPosition();
 
-          // 追加：回転後に下に動けなければロックダウン開始
+          // 追加：回転後に下に動けなければロックダウン開始（ただし上部では開始しない）
           const belowPos = { row: np.row + 1, col: np.col };
-          if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+          if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive && np.row >= 0) {
             isLockActive = true;
             lockMovesLeft = 15;
             lockTimeout = window.setTimeout(() => {
@@ -320,10 +326,10 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
           }
 
           // 既存のロックタイマーリセット処理
-          if (isLockActive && lockTimeout) {
+      if (isLockActive && lockTimeout) {
             clearTimeout(lockTimeout);
             lockTimeout = window.setTimeout(() => {
-              if (!gameOver()) { lockPiece(); isLockActive = false; }
+        if (!gameOver()) { lockPiece(); isLockActive = false; }
             }, LOCK_DELAY);
           }
           return;
@@ -357,7 +363,7 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
           updateGhostPosition();
 
           const belowPos = { row: np.row + 1, col: np.col };
-          if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+          if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive && np.row >= 0) {
             isLockActive = true;
             lockMovesLeft = 15;
             lockTimeout = window.setTimeout(() => {
@@ -410,7 +416,7 @@ const rotate180 = () => {
 
       // ② 回転後に着地している場合はロックダウン開始
       const belowPos = { row: np.row + 1, col: np.col };
-      if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive) {
+  if (!isValidPosition(belowPos, newPiece.shape) && !isLockActive && np.row >= 0) {
         isLockActive = true;
         lockMovesLeft = 15;
         lockTimeout = window.setTimeout(() => {
