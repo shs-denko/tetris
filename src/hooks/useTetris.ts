@@ -169,34 +169,9 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     // 次のピースを更新
     setNextPieces((prev: Tetromino[]) => [...prev.slice(1), generator.next()]);
     
-    // まず標準位置で配置を試す
-    setCurrentPosition(startPosition);
-    
-    // 標準位置で配置できない場合の処理
+    // ピースを置けるかチェック
     if (!isValidPosition(startPosition, next.shape)) {
-      // ピースの可視部分（row >= 0）がブロックされているかチェック
-      let visibleBlocked = false;
-      for (let y = 0; y < next.shape.length; y++) {
-        for (let x = 0; x < next.shape[y].length; x++) {
-          if (next.shape[y][x]) {
-            const boardRow = startPosition.row + y;
-            const boardCol = startPosition.col + x;
-            if (boardRow >= 0 && boardRow < BOARD_HEIGHT && 
-                boardCol >= 0 && boardCol < BOARD_WIDTH && 
-                board()[boardRow][boardCol] !== null) {
-              visibleBlocked = true;
-              break;
-            }
-          }
-        }
-        if (visibleBlocked) break;
-      }
-      
-      // 可視部分がブロックされている場合のみゲームオーバー
-      if (visibleBlocked) {
-        setGameOver(true);
-        return;
-      }
+      setGameOver(true);
     }
     
     // ホールドをリセット
@@ -501,26 +476,12 @@ const rotate180 = () => {
         row: -2,
         col: Math.floor((BOARD_WIDTH - currentHold.shape[0].length) / 2)
       };
-      
-      // まず標準位置で配置を試す
       setCurrentPosition(startPosition);
       
-      // 標準位置で配置できない場合の処理
+      // ホールド後の衝突チェック
       if (!isValidPosition(startPosition, currentHold.shape)) {
-        // 上方向に少し移動して再試行
-        let canPlace = false;
-        for (let testRow = startPosition.row - 1; testRow >= startPosition.row - 3; testRow--) {
-          if (isValidPosition({ row: testRow, col: startPosition.col }, currentHold.shape)) {
-            setCurrentPosition({ row: testRow, col: startPosition.col });
-            canPlace = true;
-            break;
-          }
-        }
-        
-        if (!canPlace) {
-          setGameOver(true);
-          return;
-        }
+        setGameOver(true);
+        return;
       }
     } else {
       getNewPiece();
@@ -548,10 +509,8 @@ const rotate180 = () => {
     const pos = currentPosition();
     if (!cp || !pos) return;
 
-    // ゲームオーバー条件を改善：ピースが完全にボード上部に隠れている場合のみ
-    // ピースの最下部がボード上部（row=0）より上にある場合はゲームオーバー
-    const pieceBottom = pos.row + cp.shape.length - 1;
-    if (pieceBottom < 0) {
+    // 頭上でロックされた場合はゲームオーバー
+    if (pos.row < 0) {
       setGameOver(true);
       return;
     }
@@ -560,7 +519,7 @@ const rotate180 = () => {
     cp.shape.forEach((row: number[], y: number) => {
       row.forEach((cell: number, x: number) => {
         if (cell) {
-          const boardRow = Math.max(pos.row, 0) + y; // 負の座標は0として扱う
+          const boardRow = pos.row + y;
           const boardCol = pos.col + x;
           if (boardRow >= 0 && boardRow < BOARD_HEIGHT && boardCol >= 0 && boardCol < BOARD_WIDTH) {
             newBoard[boardRow][boardCol] = cp.color;
