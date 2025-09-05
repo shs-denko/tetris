@@ -553,22 +553,21 @@ const rotate180 = () => {
     const pos = currentPosition();
     if (!cp || !pos) return;
 
-    // ピースの一部でも盤面最上部（row 0）でロックされ、かつ実際にブロックが配置される場合のみゲームオーバー
-    let hasLockInTopRow = false;
+    // トップアウト判定:
+    // ピースの一部でも盤面の上（row < 0）にある状態でロックされた場合のみゲームオーバー。
+    // row 0（最上段）に触れてロックしてもゲーム継続（従来の突然死の原因を修正）。
+    let hasTopOut = false;
     for (let y = 0; y < cp.shape.length; y++) {
       for (let x = 0; x < cp.shape[y].length; x++) {
         if (cp.shape[y][x]) {
           const boardRow = pos.row + y;
-          // 盤面の最上行（row 0）でブロックが実際に配置される場合のみ
-          if (boardRow === 0) {
-            hasLockInTopRow = true;
-            break;
-          }
+          // 盤面の上（row < 0）にブロックが存在するままロックされる場合はゲームオーバー
+          if (boardRow < 0) { hasTopOut = true; break; }
         }
       }
-      if (hasLockInTopRow) break;
+      if (hasTopOut) break;
     }
-    if (hasLockInTopRow) {
+    if (hasTopOut) {
       setGameOver(true);
       return;
     }
