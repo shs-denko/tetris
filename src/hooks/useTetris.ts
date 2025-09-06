@@ -293,13 +293,20 @@ export const useTetris = (seed?: number, onAttackInitial?: (lines: number) => vo
     
   // 下移動失敗時 → ロックダウン開始（盤面に出ている時のみ）。
   // 上部（row < 0）ではロックを開始しないことで、何もしていないのに突然ゲームオーバーになる事象を防ぐ。
-  if (rowOffset > 0 && !isLockActive && pos.row >= 0) {
-      isLockActive = true;
-      lockMovesLeft = 15;
-      lockTimeout = window.setTimeout(() => {
+  if (rowOffset > 0 && !isLockActive) {
+      if (pos.row < 0) {
+        // 画面外(上)に位置したままこれ以上下に進めない = トップアウト状態
+        // 即ロックして lockPiece 側の top-out 判定でゲームオーバーへ
         lockPiece();
-        isLockActive = false;
-      }, LOCK_DELAY);
+      } else {
+        // 通常の着地ロック遅延開始
+        isLockActive = true;
+        lockMovesLeft = 15;
+        lockTimeout = window.setTimeout(() => {
+          lockPiece();
+          isLockActive = false;
+        }, LOCK_DELAY);
+      }
     }
     
     return false;
